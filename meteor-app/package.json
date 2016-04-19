@@ -1,5 +1,5 @@
 {
-  "name": "meteor-app",
+  "name": "zodiase-mdl-issue-#34",
   "private": true,
   "scripts": {
     "start": "meteor run"
