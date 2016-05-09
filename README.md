@@ -1,2 +1,2 @@
-# Meteor 1.3.2.4 Empty App
-### Branch from this for tests based on Meteor 1.3.2.4.
+# Symlink in public issue
+This Meteor app reproduces the issue where no files in the `public` folder will be served as long as there is a symlink in it.
