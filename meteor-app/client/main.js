@@ -1,5 +1,6 @@
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
+import { check } from 'meteor/zodiase:check';
 
 import './main.html';
 
@@ -19,4 +20,14 @@ Template.hello.events({
     // increment the counter when button is clicked
     instance.counter.set(instance.counter.get() + 1);
   },
+});
+
+Meteor.startup(() => {
+  var foo = null;
+
+  // Trigger server check.
+  Meteor.call('check', foo);
+
+  // Local check.
+  check(foo, Object, 'Expect foo to be an object.');
 });
