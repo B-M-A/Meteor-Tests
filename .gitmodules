@@ -1,0 +1,3 @@
+[submodule "meteor-app/packages/meteor-infinite-load"]
+	path = meteor-app/packages/meteor-infinite-load
+	url = https://github.com/Zodiase/meteor-infinite-load.git
