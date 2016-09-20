@@ -30,6 +30,15 @@ Meteor.startup(() => {
     verbose: true
   });
   infDb.start().then((infLd) => {
-    console.log('infDb.stats', infLd.stats);
+    // Test command. Expect `request ready` and `end request` logs if the issue is fixed.
+    infDb.setServerParameters({
+      "search": "a"
+    }).then(() => {
+      // Show new stats.
+      console.info('stats', infDb.stats);
+      console.warn('Test passed!');
+    });
+    // Show previous stats.
+    console.info('stats', infDb.stats);
   });
 });
