@@ -1,2 +1,5 @@
-# Meteor 1.4.2.3 Empty App
-### Branch from this for tests based on Meteor 1.4.2.3.
+# Meteor issue #6424 reproduction.
+
+## The issue
+
+Builder would detect package files.
