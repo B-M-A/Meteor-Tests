@@ -1,2 +1,3 @@
-# Meteor 1.2.1 Empty App
-### Branch from this for tests based on Meteor 1.2.1.
+# Meteor issue #6424 reproduction (part 2).
+
+Builder wouldn't detect package files (which is good).
