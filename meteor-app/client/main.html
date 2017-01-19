@@ -2,15 +2,15 @@
   <title>meteor-app</title>
 </head>
 
-<body>
-  <h1>Welcome to Meteor!</h1>
+<body class="mdc-typography">
+  <h1 class="mdc-typography--display1">Welcome to Meteor!</h1>
 
   {{> hello}}
   {{> info}}
 </body>
 
 <template name="hello">
-  <button>Click Me</button>
+  <button type="button" class="mdc-button mdc-button--raised mdc-ripple-surface">Click Me</button>
   <p>You've pressed the button {{counter}} times.</p>
 </template>
 
