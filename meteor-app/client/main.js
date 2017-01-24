@@ -1,8 +1,8 @@
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
 
-// Import MDC-Ripple from the distribution files.
-import { ripple } from 'material-components-web/dist/material-components-web.js';
+// Import MDC-Ripple from the meteor package.
+import { ripple } from 'meteor/zodiase:mdc-styleless';
 import 'material-components-web/dist/material-components-web.css';
 
 import './main.html';
