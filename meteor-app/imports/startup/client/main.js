@@ -12,3 +12,32 @@ import '/imports/mdc-component-demo-templates/card/template';
 import '/imports/mdc-component-demo-templates/checkbox/template';
 
 import './main.html';
+import './main.css';
+
+const tplClass = Template.body;
+
+tplClass.onCreated(function templateOnCreated() {
+  this.demoSection_ = new ReactiveVar('');
+});
+
+tplClass.onRendered(function templateOnRendered() {
+});
+
+tplClass.helpers({
+  demoTemplateName () {
+    const sectionName = Template.instance().demoSection_.get(),
+          templateName = `mdc_demo_${sectionName}`;
+
+    return (!sectionName || !Template[templateName])
+           ? ''
+           : templateName;
+  }
+});
+
+tplClass.events({
+  'click .demo-nav a' (event, tplInst) {
+    event.preventDefault();
+
+    tplInst.demoSection_.set(event.currentTarget.getAttribute('data-for'));
+  }
+});

@@ -4,7 +4,16 @@
 
 <body class="mdc-typography">
   <h1 class="mdc-typography--display1">Welcome to Meteor!</h1>
-  {{> mdc_demo_button}}
-  {{> mdc_demo_card}}
-  {{> mdc_demo_checkbox}}
+  <aside>
+    <nav class="demo-nav">
+      <a href="#" data-for="button">Button</a>
+      <a href="#" data-for="card">Card</a>
+      <a href="#" data-for="checkbox">Checkbox</a>
+    </nav>
+  </aside>
+  <main>
+    {{#if demoTemplateName}}
+      {{> Template.dynamic template=demoTemplateName}}
+    {{/if}}
+  </main>
 </body>
