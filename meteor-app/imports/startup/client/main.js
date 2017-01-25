@@ -11,6 +11,8 @@ import '/imports/mdc-component-demo-templates/button/template';
 import '/imports/mdc-component-demo-templates/card/template';
 import '/imports/mdc-component-demo-templates/checkbox/template';
 import '/imports/mdc-component-demo-templates/temporary-drawer/template';
+import '/imports/mdc-component-demo-templates/permanent-drawer-above-toolbar/template';
+import '/imports/mdc-component-demo-templates/permanent-drawer-below-toolbar/template';
 
 import './main.html';
 import './main.css';
