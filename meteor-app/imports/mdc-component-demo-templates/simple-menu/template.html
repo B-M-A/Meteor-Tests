@@ -1,0 +1,73 @@
+<!--
+  Copyright 2016 Google Inc. All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      https://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License
+-->
+<template name="mdc_demo_simple_menu">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <main class="demo-main">
+    <h1>MDC Simple Menu</h1>
+    <p>
+      Button position:
+      <label>
+        <input type="radio" name="position" value="top left" checked>
+        Top left
+      </label>
+      <label>
+        <input type="radio" name="position" value="top right">
+        Top right
+      </label>
+      <label>
+        <input type="radio" name="position" value="bottom left">
+        Bottom left
+      </label>
+      <label>
+        <input type="radio" name="position" value="bottom right">
+        Bottom right
+      </label>
+    </p>
+    <p>
+      <label>
+        <input type="checkbox" name="dark">
+        Dark mode
+      </label>
+    </p>
+    <div>
+      <span>Last Selected item: <em id="last-selected">&lt;none selected&gt;</em></span>
+    </div>
+    <div class="demo-content">
+      <div class="mdc-menu-anchor">
+        <button class="toggle">Toggle</button>
+
+        <div class="mdc-simple-menu" style="position: absolute;" tabindex="-1">
+          <ul class="mdc-simple-menu__items mdc-list" role="menu" aria-hidden="true">
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Back</li>
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Forward</li>
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Reload</li>
+            <li class="mdc-list-divider" role="separator"></li>
+
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Save As...</li>
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Print...</li>
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Cast...</li>
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Translate to English</li>
+            <li class="mdc-list-divider" role="separator"></li>
+
+            <li class="mdc-list-item" role="menuitem" tabindex="0">View Page Source</li>
+            <li class="mdc-list-item" role="menuitem" tabindex="0">Inspect</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+</template>

@@ -18,6 +18,7 @@ import '/imports/mdc-component-demo-templates/fab/template';
 import '/imports/mdc-component-demo-templates/icon-toggle/template';
 import '/imports/mdc-component-demo-templates/list/template';
 import '/imports/mdc-component-demo-templates/select/template';
+import '/imports/mdc-component-demo-templates/simple-menu/template';
 
 import './main.html';
 import './main.css';
