@@ -21,6 +21,7 @@ import '/imports/mdc-component-demo-templates/select/template';
 import '/imports/mdc-component-demo-templates/simple-menu/template';
 import '/imports/mdc-component-demo-templates/radio/template';
 import '/imports/mdc-component-demo-templates/ripple/template';
+import '/imports/mdc-component-demo-templates/snackbar/template';
 
 import './main.html';
 import './main.css';
