@@ -13,6 +13,8 @@ import '/imports/mdc-component-demo-templates/checkbox/template';
 import '/imports/mdc-component-demo-templates/temporary-drawer/template';
 import '/imports/mdc-component-demo-templates/permanent-drawer-above-toolbar/template';
 import '/imports/mdc-component-demo-templates/permanent-drawer-below-toolbar/template';
+import '/imports/mdc-component-demo-templates/elevation/template';
+import '/imports/mdc-component-demo-templates/fab/template';
 
 import './main.html';
 import './main.css';
