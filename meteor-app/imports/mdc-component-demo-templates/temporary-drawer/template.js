@@ -13,8 +13,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   // Initialize all MDC components.
   this.mdcDrawer_ = new drawer.MDCTemporaryDrawer(this.$('.mdc-temporary-drawer')[0]);
 });

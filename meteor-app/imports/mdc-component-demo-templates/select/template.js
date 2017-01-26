@@ -13,8 +13,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   this.mdcSelect_ = select.MDCSelect.attachTo(this.$('#js-select')[0]);
 });
 

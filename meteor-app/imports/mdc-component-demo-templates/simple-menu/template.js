@@ -13,8 +13,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   this.menuEl_ = this.$('.mdc-simple-menu')[0];
   this.mdcMenu_ = menu.MDCSimpleMenu.attachTo(this.menuEl_);
 });

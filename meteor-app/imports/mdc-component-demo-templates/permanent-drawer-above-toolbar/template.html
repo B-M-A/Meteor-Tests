@@ -16,6 +16,57 @@
 <template name="mdc_demo_permanent_drawer_above_toolbar">
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <style>
+  /* Ensure layout covers the entire screen. */
+  html {
+    height: 100%;
+  }
+
+  /* Place drawer and content side by side. */
+  .demo-body {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+  }
+
+  /* Stack toolbar and main on top of each other. */
+  .demo-content {
+    display: inline-flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  /* A quick and simple toolbar, while we're waiting for mdc-toolbar. */
+  .demo-toolbar {
+    display: block;
+    width: 100%;
+    height: 56px;
+    line-height: 56px;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+  @media (min-width: 600px) {
+    .demo-toolbar {
+      height: 64px;
+      line-height: 64px;
+    }
+  }
+
+  /* Place drawer above toolbar shadow. */
+  .mdc-permanent-drawer {
+    z-index: 2;
+  }
+
+  .demo-main {
+    padding-left: 16px;
+  }
+  </style>
   <div class="demo-body mdc-typography">
     <nav class="mdc-permanent-drawer">
       <div class="mdc-permanent-drawer__toolbar-spacer"></div>

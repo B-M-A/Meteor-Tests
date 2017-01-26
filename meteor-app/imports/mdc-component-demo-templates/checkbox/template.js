@@ -13,8 +13,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   // Initialize all MDC components.
   this.mdcCheckbox_ = new checkbox.MDCCheckbox(this.$('#mdc-js-checkbox')[0]);
 });

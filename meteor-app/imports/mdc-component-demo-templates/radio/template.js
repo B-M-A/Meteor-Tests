@@ -13,8 +13,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   // Initialize all MDC components.
   this.$('.mdc-radio:not([data-demo-no-js])').each((index, element) => {
     radio.MDCRadio.attachTo(element);

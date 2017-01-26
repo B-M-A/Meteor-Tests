@@ -13,8 +13,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   // Initialize all MDC components.
   this.$('.mdc-button').each((index, element) => {
     ripple.MDCRipple.attachTo(element);

@@ -1,30 +1,26 @@
-<body class="mdc-typography">
-  <h1 class="mdc-typography--display1">Welcome to Meteor!</h1>
-  <aside>
-    <nav class="demo-nav">
-      <a href="#" data-for="button">Button</a>
-      <a href="#" data-for="card">Card</a>
-      <a href="#" data-for="checkbox">Checkbox</a>
-      <a href="#" data-for="temporary_drawer">Drawer (temporary)</a>
-      <a href="#" data-for="permanent_drawer_above_toolbar">Drawer (permanent, above toolbar)</a>
-      <a href="#" data-for="permanent_drawer_below_toolbar">Drawer (permanent, below toolbar)</a>
-      <a href="#" data-for="elevation">Elevation</a>
-      <a href="#" data-for="fab">FAB</a>
-      <a href="#" data-for="icon_toggle">Icon Toggle</a>
-      <a href="#" data-for="list">List</a>
-      <a href="#" data-for="select">Select</a>
-      <a href="#" data-for="simple_menu">Menu (simple)</a>
-      <a href="#" data-for="radio">Radio</a>
-      <a href="#" data-for="ripple">Ripple</a>
-      <a href="#" data-for="snackbar">Snackbar</a>
-      <a href="#" data-for="textfield">Text Field</a>
-      <a href="#" data-for="theme">Theme</a>
-      <a href="#" data-for="typography">Typography</a>
-    </nav>
-  </aside>
-  <main>
-    {{#if demoTemplateName}}
-      {{> Template.dynamic template=demoTemplateName}}
-    {{/if}}
-  </main>
+<body>
+  <nav class="mdc-demo-nav mdc-elevation--z24">
+    <h2>Components</h2>
+    <a href="#" data-for="button">Button</a>
+    <a href="#" data-for="card">Card</a>
+    <a href="#" data-for="checkbox">Checkbox</a>
+    <a href="#" data-for="temporary_drawer">Drawer (temporary)</a>
+    <a href="#" data-for="permanent_drawer_above_toolbar">Drawer (permanent, above toolbar)</a>
+    <a href="#" data-for="permanent_drawer_below_toolbar">Drawer (permanent, below toolbar)</a>
+    <a href="#" data-for="elevation">Elevation</a>
+    <a href="#" data-for="fab">FAB</a>
+    <a href="#" data-for="icon_toggle">Icon Toggle</a>
+    <a href="#" data-for="list">List</a>
+    <a href="#" data-for="select">Select</a>
+    <a href="#" data-for="simple_menu">Menu (simple)</a>
+    <a href="#" data-for="radio">Radio</a>
+    <a href="#" data-for="ripple">Ripple</a>
+    <a href="#" data-for="snackbar">Snackbar</a>
+    <a href="#" data-for="textfield">Text Field</a>
+    <a href="#" data-for="theme">Theme</a>
+    <a href="#" data-for="typography">Typography</a>
+  </nav>
+  {{#if demoTemplateName}}
+    {{> Template.dynamic template=demoTemplateName}}
+  {{/if}}
 </body>

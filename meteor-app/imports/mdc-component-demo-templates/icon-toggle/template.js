@@ -14,8 +14,6 @@ tplClass.onCreated(function templateOnCreated() {
 });
 
 tplClass.onRendered(function templateOnRendered() {
-  import './template.css';
-
   // Initialize all MDC components.
   this.$('.mdc-icon-toggle').each((index, element) => {
     iconToggle.MDCIconToggle.attachTo(element);

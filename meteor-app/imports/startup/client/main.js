@@ -50,7 +50,7 @@ tplClass.helpers({
 });
 
 tplClass.events({
-  'click .demo-nav a' (event, tplInst) {
+  'click .mdc-demo-nav a' (event, tplInst) {
     event.preventDefault();
 
     tplInst.demoSection_.set(event.currentTarget.getAttribute('data-for'));

@@ -16,7 +16,59 @@
 <template name="mdc_demo_list">
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <div class="mdc-typography">
+  <style>
+    .mdc-list,
+    .mdc-list-group {
+      max-width: 600px;
+    }
+
+    .mdc-theme--dark {
+      background: #303030;
+    }
+
+    .mdc-theme--dark > h3 {
+      color: white;
+    }
+
+    .grey-bg {
+      background: rgba(0, 0, 0, .26);
+    }
+
+    #icon-with-text-demo .mdc-list-item__start-detail {
+      color: rgba(0, 0, 0, .54);
+    }
+
+    .mdc-theme--dark #icon-with-text-demo .mdc-list-item__start-detail {
+      color: rgba(255, 255, 255, .7);
+    }
+
+    #avatar-text-icon-demo-list .mdc-list-item__end-detail {
+      text-decoration: none;
+      color: #ff4081; /* Pink A200 */
+    }
+
+    .two-line-avatar-text-icon-demo .mdc-list-item__start-detail {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .two-line-avatar-text-icon-demo .mdc-list-item__end-detail {
+      color: rgba(0, 0, 0, .26);
+      text-decoration: none;
+    }
+
+    .mdc-theme--dark .two-line-avatar-text-icon-demo .mdc-list-item__start-detail {
+      background-color: rgba(255, 255, 255, .7);
+      color: #303030;
+    }
+
+    .mdc-theme--dark .two-line-avatar-text-icon-demo .mdc-list-item__end-detail {
+      color: rgba(255, 255, 255, .7);
+    }
+  </style>
+  <main class="mdc-typography">
     <h1>MDC List</h1>
     <aside>
       <em>NOTE:</em> For the purposes of this demo, we've set a max-width of 600px on all
@@ -956,5 +1008,5 @@
         </section>
       </section>
     </div>
-  </div>
+  </main>
 </template>
