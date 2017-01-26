@@ -23,6 +23,7 @@ import '/imports/mdc-component-demo-templates/radio/template';
 import '/imports/mdc-component-demo-templates/ripple/template';
 import '/imports/mdc-component-demo-templates/snackbar/template';
 import '/imports/mdc-component-demo-templates/textfield/template';
+import '/imports/mdc-component-demo-templates/theme/template';
 
 import './main.html';
 import './main.css';
