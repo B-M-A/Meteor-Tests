@@ -22,5 +22,7 @@
   </nav>
   {{#if demoTemplateName}}
     {{> Template.dynamic template=demoTemplateName}}
+  {{else}}
+    <span class="startup-note">Select a component on the right.</span>
   {{/if}}
 </body>
