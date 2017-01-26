@@ -10,21 +10,6 @@ const tplName = "mdc_demo_textfield",
       tplClass = Template[tplName];
 
 tplClass.onCreated(function templateOnCreated() {
-  this.show_ = (sb) => {
-    var data = {
-      message: this.$('#message')[0].value,
-      actionOnBottom: this.$('#action-on-bottom')[0].checked,
-      multiline: this.$('#multiline')[0].checked
-    };
-    if (this.$('#action')[0].value) {
-      data.actionText = this.$('#action')[0].value;
-      data.actionHandler = function() {
-        console.log(data);
-      }
-    }
-    console.info(data);
-    sb.show(data);
-  };
 });
 
 tplClass.onRendered(function templateOnRendered() {
