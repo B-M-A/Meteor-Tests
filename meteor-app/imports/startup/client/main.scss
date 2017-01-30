@@ -1,22 +1,30 @@
-//@import '{zodiase:mdc-sass}/bundle'; //! This file is expanded below.
-
-//! Files are commented out to narrow down the scope of the issue.
-
-//@import "{zodiase:mdc-sass}/animation/mdc-animation";
-//@import "{zodiase:mdc-sass}/button/mdc-button";
-@import "{zodiase:mdc-sass}/card/mdc-card";
-//@import "{zodiase:mdc-sass}/checkbox/mdc-checkbox";
-//@import "{zodiase:mdc-sass}/drawer/mdc-drawer";
-//@import "{zodiase:mdc-sass}/elevation/mdc-elevation";
-//@import "{zodiase:mdc-sass}/fab/mdc-fab";
-//@import "{zodiase:mdc-sass}/form-field/mdc-form-field";
-//@import "{zodiase:mdc-sass}/icon-toggle/mdc-icon-toggle";
-//@import "{zodiase:mdc-sass}/list/mdc-list";
-//@import "{zodiase:mdc-sass}/menu/mdc-menu";
-//@import "{zodiase:mdc-sass}/radio/mdc-radio";
-//@import "{zodiase:mdc-sass}/ripple/mdc-ripple";
-//@import "{zodiase:mdc-sass}/select/mdc-select";
-//@import "{zodiase:mdc-sass}/snackbar/mdc-snackbar";
-//@import "{zodiase:mdc-sass}/textfield/mdc-textfield";
-//@import "{zodiase:mdc-sass}/theme/mdc-theme";
-//@import "{zodiase:mdc-sass}/typography/mdc-typography";
+  @import "{zodiase:mdc-sass}/card/mdc-card";
+//  Which uses:
+//    @import "{zodiase:mdc-sass}/elevation/mixins";
+//      Which uses:
+//        @import "./variables";
+//          Which is @import "{zodiase:mdc-sass}/elevation/variables";
+//          Which uses:
+//            @import "{zodiase:mdc-sass}/animation/variables";
+//              Which uses nothing.
+//  @import "{zodiase:mdc-sass}/theme/mixins";
+//    Which uses:
+//      @import "./variables";
+//        Which is @import "{zodiase:mdc-sass}/theme/variables";
+//        Which uses:
+//          @import "./functions";
+//            Which is @import "{zodiase:mdc-sass}/theme/functions";
+//            Which uses:
+//              @import "./constants";
+//                Which is @import "{zodiase:mdc-sass}/theme/constants";
+//                Which uses nothing.
+//  @import "{zodiase:mdc-sass}/typography/mixins";
+//    Which uses:
+//      @import "./variables";
+//        Which is @import "{zodiase:mdc-sass}/typography/variables";
+//        Which uses:
+//          @import "./variables";
+//            Which is @import "{zodiase:mdc-sass}/typography/variables";
+//            Which uses nothing.
+//            Defines variable: $mdc-typography-styles
+//    Uses variable: $mdc-typography-styles
