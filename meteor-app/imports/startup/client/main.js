@@ -2,8 +2,7 @@ import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
 
 // Import MDC-Ripple from the meteor package.
-import { default as mdc } from 'meteor/zodiase:mdc-styleless';
-import 'material-components-web/dist/material-components-web.css';
+import { default as mdc } from 'meteor/zodiase:mdc';
 
 window.mdc = mdc;
 
