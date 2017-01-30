@@ -1,5 +1,10 @@
-# Meteor 1.4.2.3 w/ MDC
+# MDC for Meteor / SASS issue
 
-This app imports MDC components from a bundle provided by a Meteor package. It has a list of demos for all the components from MDC.
+In `meteor-app/imports/startup/client/main.scss`, using `@import "{zodiase:mdc-sass}/card/mdc-card";` causes error:
 
-Check out [the live demo](http://meteor-mdc-demo.herokuapp.com/).
+```Bash
+=> Errors prevented startup:                  
+   
+   While building for web.browser:
+   /imports/startup/client/main.scss: Scss compiler error: Undefined variable: "$mdc-typography-styles".
+```
