@@ -27,6 +27,7 @@ import '/imports/mdc-component-demo-templates/typography/template';
 
 import './main.html';
 import './main.css';
+import 'meteor/zodiase:mdc/stylesheet';
 
 const tplClass = Template.body;
 

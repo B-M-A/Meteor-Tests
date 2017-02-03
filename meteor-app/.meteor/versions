@@ -71,6 +71,6 @@ underscore@1.0.10
 url@1.0.11
 webapp@1.3.12
 webapp-hashing@1.0.9
-zodiase:mdc@0.0.1
+zodiase:mdc@0.0.2
 zodiase:mdc-styleless@0.0.1
-zodiase:mdc-styleonly@0.0.1
+zodiase:mdc-styleonly@0.0.2
