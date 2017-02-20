@@ -41,6 +41,9 @@ tplClass.onRendered(function templateOnRendered() {
 });
 
 tplClass.helpers({
+  mdcVersion () {
+    return `v${mdc.mdcVersion}`;
+  },
   demoTemplateName () {
     const sectionName = Template.instance().demoSection_.get(),
           templateName = `mdc_demo_${sectionName}`;
