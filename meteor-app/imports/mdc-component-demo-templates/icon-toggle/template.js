@@ -2,7 +2,7 @@ import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
 
 // Import MDC components from the meteor package.
-import { iconToggle } from 'meteor/zodiase:mdc';
+import { iconToggle } from 'meteor/zodiase:mdc-styleless';
 
 import './template.html';
 

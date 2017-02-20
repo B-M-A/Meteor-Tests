@@ -1,22 +1,15 @@
 import { Template } from 'meteor/templating';
-import { ReactiveVar } from 'meteor/reactive-var';
 
 // Import MDC components from the meteor package.
-import { select } from 'meteor/zodiase:mdc';
+import { select } from 'meteor/zodiase:mdc-styleless';
 
 import './template.html';
 
 const tplName = "mdc_demo_select",
       tplClass = Template[tplName];
 
-tplClass.onCreated(function templateOnCreated() {
-});
-
 tplClass.onRendered(function templateOnRendered() {
   this.mdcSelect_ = select.MDCSelect.attachTo(this.$('#js-select')[0]);
-});
-
-tplClass.helpers({
 });
 
 tplClass.events({

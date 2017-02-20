@@ -1,16 +1,12 @@
 import { Template } from 'meteor/templating';
-import { ReactiveVar } from 'meteor/reactive-var';
 
 // Import MDC components from the meteor package.
-import { textfield } from 'meteor/zodiase:mdc';
+import { textfield } from 'meteor/zodiase:mdc-styleless';
 
 import './template.html';
 
 const tplName = "mdc_demo_textfield",
       tplClass = Template[tplName];
-
-tplClass.onCreated(function templateOnCreated() {
-});
 
 tplClass.onRendered(function templateOnRendered() {
   // Initialize all MDC components.
@@ -32,9 +28,6 @@ tplClass.onRendered(function templateOnRendered() {
   this.tfMultiRoot_ = this.$(this.section_fullwidth_).find('.mdc-textfield--multiline')[0];
   this.mdcTf_fullwidth_ = new textfield.MDCTextfield(this.tfRoot_fullwidth_);
   this.mdcTfMulti_ = new textfield.MDCTextfield(this.tfMultiRoot_);
-});
-
-tplClass.helpers({
 });
 
 tplClass.events({

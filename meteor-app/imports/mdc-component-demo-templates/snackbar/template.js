@@ -1,8 +1,7 @@
 import { Template } from 'meteor/templating';
-import { ReactiveVar } from 'meteor/reactive-var';
 
 // Import MDC components from the meteor package.
-import { snackbar } from 'meteor/zodiase:mdc';
+import { snackbar } from 'meteor/zodiase:mdc-styleless';
 
 import './template.html';
 
@@ -30,9 +29,6 @@ tplClass.onCreated(function templateOnCreated() {
 tplClass.onRendered(function templateOnRendered() {
   this.mdcSnackbar_ = snackbar.MDCSnackbar.attachTo(this.$('#mdc-js-snackbar')[0]);
   this.mdcRtlSnackbar_ = snackbar.MDCSnackbar.attachTo(this.$('#mdc-rtl-js-snackbar')[0]);
-});
-
-tplClass.helpers({
 });
 
 tplClass.events({
