@@ -1,1 +1,7 @@
 /* CSS declarations go here */
+
+map-view {
+  /* Example of overriding the default size of the element. */
+  height: 450px;
+  width: 800px;
+}
