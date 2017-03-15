@@ -11,6 +11,13 @@ import { getBaseMap } from './basemap.js';
 
 /*global customElements, HTMLElement*/
 
+const DEBUG = true,
+      NOOP = () => {},
+      log = DEBUG ? ((...args) => console.log(...args)) : NOOP,
+      logInfo = DEBUG ? ((...args) => console.info(...args)) : NOOP,
+      logWarn = DEBUG ? ((...args) => console.warn(...args)) : NOOP,
+      logError = DEBUG ? ((...args) => console.error(...args)) : NOOP;
+
 /**
  * Returns a map of attribute names to their values.
  */
@@ -105,7 +112,7 @@ class MapView extends HTMLElement {
    * Called every time the element is inserted into the DOM. Useful for running setup code, such as fetching resources or rendering. Generally, you should try to delay work until this time.
    */
   connectedCallback() {
-    console.log('connected');
+    log('connected');
 
     this.connected_ = true;
 
@@ -120,7 +127,7 @@ class MapView extends HTMLElement {
    * Called every time the element is removed from the DOM. Useful for running clean up code (removing event listeners, etc.).
    */
   disconnectedCallback() {
-    console.log('disconnected');
+    log('disconnected');
 
     this.connected_ = false;
 
@@ -132,7 +139,7 @@ class MapView extends HTMLElement {
    * An attribute was added, removed, updated, or replaced. Also called for initial values when an element is created by the parser, or upgraded. Note: only attributes listed in the observedAttributes property will receive this callback.
    */
   attributeChangedCallback(attrName, oldVal, newVal) {
-    console.warn('attributeChanged', {attrName, oldVal, newVal});
+    logWarn('attributeChanged', {attrName, oldVal, newVal});
     attributeChangedCallback(this, attrName, oldVal, newVal);
   }
 
@@ -192,7 +199,7 @@ class MapView extends HTMLElement {
    * Underlying function that actually changes the base map.
    */
   setBaseMap_(type) {
-    console.log('setBaseMap_', {type});
+    log('setBaseMap_', {type});
 
     // @type {ol.layer.Base|null}
     const newBaseLayer = getBaseMap(type, this.baseMapCache_);
@@ -210,7 +217,7 @@ class MapView extends HTMLElement {
    * Underlying function that actually changes the projection.
    */
   setProjection_(projection) {
-    console.log('setProjection_', {projection});
+    log('setProjection_', {projection});
 
     // @type {ol.View|null}
     const newView = getView(projection, this.viewCache_);
