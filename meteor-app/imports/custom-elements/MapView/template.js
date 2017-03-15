@@ -16,11 +16,28 @@ export const customElementStyleString = `
   box-sizing: border-box;
 }
 
+#wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 #map {
   width: 100%;
   height: 100%;
 }
+
+#layer-list {
+  position: absolute;
+  top: 0;
+  right: auto;
+  left: 0;
+  bottom: 0;
+  overflow: auto;
+}
 `;
+
+// Note: Slots can't be styled (any styling takes no effect).
 
 export const html = `
 <!-- Openlayers Styling -->
@@ -30,6 +47,13 @@ export const html = `
 <style type="text/css">${customElementStyleString}</style>
 
 <!-- Custom Element HTML -->
-<div>Below is a map</div>
-<div id="map" class="map" tabindex="0"></div>
+
+<!-- This wrapper exists so its children can rely on its "position: relative", without worrying user styling overriding it. -->
+<div id="wrapper">
+  <div id="map" class="map" tabindex="0"></div>
+  <div id="layer-list">
+    <slot name="layer-list"></slot>
+  </div>
+  <slot>Some Default Value for the Default Slot. Delete this.</slot>
+</div>
 `;

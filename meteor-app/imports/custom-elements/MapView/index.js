@@ -56,6 +56,7 @@ class MapView extends HTMLElement {
     super(); // always call super() first in the ctor.
 
     // `this` is the container HTMLElement.
+    // It has no attributes or children at construction time.
 
     // Attach a shadow root to <fancy-tabs>.
     const shadowRoot = this.attachShadow({mode: 'open'});
@@ -113,6 +114,9 @@ class MapView extends HTMLElement {
    */
   connectedCallback() {
     log('connected');
+
+    log(this.children);
+    //!log('getElementAttributes', getElementAttributes(this));
 
     this.connected_ = true;
 

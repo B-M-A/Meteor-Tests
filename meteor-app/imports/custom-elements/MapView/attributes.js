@@ -4,6 +4,7 @@ export const observedAttributes = [
   'disabled',
   'basemap',
   'projection',
+  'childList',
 ];
 
 export const attributeChangeHandlers = {
