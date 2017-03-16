@@ -5,6 +5,8 @@ import ol from './libs/ol-v4.0.1-dist.js';
  * string > * > ol.layer.Base
  */
 const layerGenerators = {
+  // Use an empty layer group to pretend it's an invisible layer.
+  'none': () => (new ol.layer.Group()),
   'osm': () => (new ol.layer.Tile({source: new ol.source.OSM()}))
 };
 
@@ -13,7 +15,8 @@ const layerGenerators = {
  * string > string
  */
 const typeAliases = {
-  'default': 'osm'
+  'default': 'osm',
+  '': 'none'
 };
 
 /**
