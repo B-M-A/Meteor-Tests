@@ -1,13 +1,12 @@
-import { getBaseMap } from './basemap.js';
+import { getBaseMap } from '../../basemap.js';
 
 export const observedAttributes = [
   'disabled',
   'basemap',
   'projection',
-  'childList',
 ];
 
-export const attributeChangeHandlers = {
+const attributeChangeHandlers = {
   'basemap': (context, oldVal, newVal) => {
     context.setBaseMap_(newVal);
   },

@@ -1,14 +1,14 @@
-import ol from './libs/ol-v4.0.1-dist.js';
+import ol from '../../libs/ol-v4.0.1-dist.js';
 
 import {
   observedAttributes,
   attributeChangedCallback
-} from './attributes.js';
-import { defaultProjection } from './projections.js';
-import { getView } from './view.js';
-import { html as shadowRootHTML } from './template.js';
-import { getBaseMap } from './basemap.js';
-import logging from './logging.js';
+} from './attributes';
+import { defaultProjection } from '../../projections';
+import { getView } from '../../view.js';
+import { html as shadowRootHTML } from '../../template';
+import { getBaseMap } from '../../basemap';
+import logging from '../../logging';
 
 /*global customElements, HTMLElement*/
 
@@ -19,7 +19,7 @@ const {
   logInfo,
   logWarn,
   logError
-} = logging(DEBUG);
+} = logging('map-view', DEBUG);
 
 /**
  * Returns a map of attribute names to their values.
@@ -56,6 +56,8 @@ class MapView extends HTMLElement {
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
   constructor() {
+    log('constructor');
+
     super(); // always call super() first in the ctor.
 
     // `this` is the container HTMLElement.
@@ -177,7 +179,7 @@ class MapView extends HTMLElement {
    * An attribute was added, removed, updated, or replaced. Also called for initial values when an element is created by the parser, or upgraded. Note: only attributes listed in the observedAttributes property will receive this callback.
    */
   attributeChangedCallback(attrName, oldVal, newVal) {
-    logWarn('attributeChanged', {attrName, oldVal, newVal});
+    log('attributeChanged', {attrName, oldVal, newVal});
     attributeChangedCallback(this, attrName, oldVal, newVal);
   }
 

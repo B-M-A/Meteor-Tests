@@ -1,1 +1,2 @@
-export * from './element.map-view.js';
+export * from './elements/map-view';
+export * from './elements/map-layer';
