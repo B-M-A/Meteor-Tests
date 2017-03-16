@@ -1,5 +1,7 @@
 import ol from './libs/ol-v4.0.1-dist.js';
 
+export const defaultCenterString = '0, 0';
+
 /**
  * Returns a new view instance for the provided projection if possible.
  * Returns null if the provided projection is invalid.
@@ -25,7 +27,7 @@ export const getView = (projection, cache) => {
     minZoom: 0,
     projection: projection,
     rotation: 0,
-    zoom: 2,
+    zoom: 3,
     zoomFactor: 2
   }) : null;
 

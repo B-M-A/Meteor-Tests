@@ -99,6 +99,10 @@ class MapLayer extends HTMLElement {
    * Getters and Setters (for properties).
    */
 
+  get layer() {
+    return this.olLayer_;
+  }
+
   get name() {
     return this.getAttribute('name');
   }

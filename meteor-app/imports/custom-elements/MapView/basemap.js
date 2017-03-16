@@ -19,6 +19,8 @@ const typeAliases = {
   '': 'none'
 };
 
+export const defaultMapType = '';
+
 /**
  * If the provided type is an alias, return the value that alias refers to.
  * string > string

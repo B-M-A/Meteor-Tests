@@ -2,9 +2,10 @@ import ol from '../../libs/ol-v4.0.1-dist.js';
 
 import {
   observedAttributes,
+  attrToProp,
+  propToAttr,
   attributeChangedCallback
 } from './attributes';
-import { defaultProjection } from '../../projections';
 import { getView } from '../../view.js';
 import { html as shadowRootHTML } from '../../template';
 import { getBaseMap } from '../../basemap';
@@ -157,7 +158,7 @@ class MapView extends HTMLElement {
     this.connected_ = true;
 
     // Reconnect the view.
-    this.olMap_.setView(this.mapView_);
+    this.mountView_();
 
     // After this custom element is inserted into somewhere new, the map size has to be updated.
     this.olMap_.updateSize();
@@ -172,7 +173,7 @@ class MapView extends HTMLElement {
     this.connected_ = false;
 
     // Disconnect the view.
-    this.olMap_.setView(null);
+    this.unmountView_();
   }
 
   /**
@@ -193,56 +194,70 @@ class MapView extends HTMLElement {
    */
 
   get disabled() {
-    return this.hasAttribute('disabled');
+    return attrToProp(this, 'disabled');
   }
 
   set disabled(val) {
     // Reflect the value of `disabled` as an attribute.
-    if (val) {
-      this.setAttribute('disabled', '');
-    } else {
-      this.removeAttribute('disabled');
-    }
+    propToAttr(this, 'disabled', val);
   }
 
   get basemap() {
-    return this.getAttribute('basemap') || '';
+    return attrToProp(this, 'basemap');
   }
 
   set basemap(val) {
-    // Reflect the value of `disabled` as an attribute.
-    if (val) {
-      this.setAttribute('basemap', val);
-    } else {
-      this.removeAttribute('basemap');
-    }
+    // Reflect the value of `basemap` as an attribute.
+    propToAttr(this, 'basemap', val);
   }
 
   get projection() {
-    return this.getAttribute('projection') || defaultProjection;
+    return attrToProp(this, 'projection');
   }
 
   set projection(val) {
-    // Reflect the value of `disabled` as an attribute.
-    if (val) {
-      this.setAttribute('projection', val);
-    } else {
-      this.removeAttribute('projection');
-    }
+    // Reflect the value of `projection` as an attribute.
+    propToAttr(this, 'projection', val);
+  }
+
+  get center() {
+    return attrToProp(this, 'center');
+  }
+
+  set center(val) {
+    // Reflect the value of `center` as an attribute.
+    propToAttr(this, 'center', val);
   }
 
   /**
    * Customized public/private methods.
    */
 
+  mountView_() {
+    this.mapView_.setCenter(this.center);
+    this.olMap_.setView(this.mapView_);
+  }
+  unmountView_() {
+    this.olMap_.setView(null);
+  }
+
   /**
    * Underlying function that actually changes the base map.
+   * @param {string} oldTypeAttr
+   * @param {string} newTypeAttr
    */
-  setBaseMap_(type) {
-    log('setBaseMap_', {type});
+  setBaseMap_(oldTypeAttr, newTypeAttr) {
+    log('setBaseMap_', {oldTypeAttr, newTypeAttr});
+
+    if (oldTypeAttr === newTypeAttr) {
+      log('setBaseMap_', 'no change');
+      return;
+    }
+
+    const newType = attrToProp(this, 'basemap', newTypeAttr !== null, newTypeAttr);
 
     // @type {ol.layer.Base|null}
-    const newBaseLayer = getBaseMap(type, this.baseMapCache_);
+    const newBaseLayer = getBaseMap(newType, this.baseMapCache_);
 
     this.baseMapLayerCollection_.clear();
 
@@ -255,21 +270,55 @@ class MapView extends HTMLElement {
 
   /**
    * Underlying function that actually changes the projection.
+   * @param {string} oldProjAttr
+   * @param {string} newProjAttr
    */
-  setProjection_(projection) {
-    log('setProjection_', {projection});
+  setProjection_(oldProjAttr, newProjAttr) {
+    log('setProjection_', {oldProjAttr, newProjAttr});
+
+    if (oldProjAttr === newProjAttr) {
+      log('setProjection_', 'no change');
+      return;
+    }
+
+    // Projection is switching from one to the other. So we need to transform all coordinates.
+    const oldProj = attrToProp(this, 'projection', oldProjAttr !== null, oldProjAttr),
+          newProj = attrToProp(this, 'projection', newProjAttr !== null, newProjAttr),
+          oldCenter = this.center,
+          newCenter = ol.proj.transform(oldCenter, oldProj, newProj);
+    logInfo('update center', {oldCenter, newCenter});
+    this.center = newCenter;
 
     // @type {ol.View|null}
-    const newView = getView(projection, this.viewCache_);
+    const newView = getView(newProjAttr, this.viewCache_);
 
     if (newView) {
       this.mapView_ = newView;
+
       if (this.connected_) {
-        this.olMap_.setView(this.mapView_);
+        this.mountView_();
       }
     } else {
       throw new RangeError('Invalid projection.');
     }
+  }
+
+  /**
+   * Underlying function that actually changes the center.
+   * @param {string} oldCenterAttr
+   * @param {string} newCenterAttr
+   */
+  setCenter_(oldCenterAttr, newCenterAttr) {
+    log('setCenter_', {oldCenterAttr, newCenterAttr});
+
+    if (oldCenterAttr === newCenterAttr) {
+      log('setCenter_', 'no change');
+      return;
+    }
+
+    const newCenter = attrToProp(this, 'center', newCenterAttr !== null, newCenterAttr);
+
+    this.mapView_.setCenter(newCenter);
   }
 
 }
