@@ -20,7 +20,18 @@ const typeAliases = {
  * If the provided type is an alias, return the value that alias refers to.
  * string > string
  */
-const getTrueType = (rawType) => typeAliases[rawType] || rawType;
+const getTrueType = (rawType) => {
+  let trueType = rawType;
+  const maxLoop = Object.keys(typeAliases).length * 2;
+  let loopCount = 0;
+  while (typeAliases.hasOwnProperty(trueType)) {
+    if (loopCount >= maxLoop) {
+      throw new Error('Too many alias lookups, perhaps there is a loop?');
+    }
+    trueType = typeAliases[rawType];
+  }
+  return trueType;
+};
 
 /**
  * Returns a new layer instance for the provided type if possible.
