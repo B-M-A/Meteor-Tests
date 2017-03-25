@@ -64,6 +64,9 @@ class MapView extends HTMLElement {
     // `this` is the container HTMLElement.
     // It has no attributes or children at construction time.
 
+    // Attach the openlayers library.
+    this.ol = ol;
+
     // Attach a shadow root to <fancy-tabs>.
     const shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.innerHTML = shadowRootHTML;
@@ -229,96 +232,40 @@ class MapView extends HTMLElement {
     propToAttr(this, 'center', val);
   }
 
+  get view() {
+    return this.mapView_;
+  }
+
+  set view(val) {
+    //! Validate view.
+    this.mapView_ = val;
+    this.center = val.getCenter();
+    this.projection = val.getProjection();
+
+    if (this.connected_) {
+      this.mountView_();
+    }
+  }
+
+  //! Property for testing event loop.
+  set test(val) {
+
+  }
+
   /**
    * Customized public/private methods.
    */
 
   mountView_() {
+    log('mountView_');
+
     this.mapView_.setCenter(this.center);
     this.olMap_.setView(this.mapView_);
   }
   unmountView_() {
+    log('unmountView_');
+
     this.olMap_.setView(null);
-  }
-
-  /**
-   * Underlying function that actually changes the base map.
-   * @param {string} oldTypeAttr
-   * @param {string} newTypeAttr
-   */
-  setBaseMap_(oldTypeAttr, newTypeAttr) {
-    log('setBaseMap_', {oldTypeAttr, newTypeAttr});
-
-    if (oldTypeAttr === newTypeAttr) {
-      log('setBaseMap_', 'no change');
-      return;
-    }
-
-    const newType = attrToProp(this, 'basemap', newTypeAttr !== null, newTypeAttr);
-
-    // @type {ol.layer.Base|null}
-    const newBaseLayer = getBaseMap(newType, this.baseMapCache_);
-
-    this.baseMapLayerCollection_.clear();
-
-    if (newBaseLayer) {
-      this.baseMapLayerCollection_.push(newBaseLayer);
-    } else {
-      throw new RangeError('Invalid base map type.');
-    }
-  }
-
-  /**
-   * Underlying function that actually changes the projection.
-   * @param {string} oldProjAttr
-   * @param {string} newProjAttr
-   */
-  setProjection_(oldProjAttr, newProjAttr) {
-    log('setProjection_', {oldProjAttr, newProjAttr});
-
-    if (oldProjAttr === newProjAttr) {
-      log('setProjection_', 'no change');
-      return;
-    }
-
-    // Projection is switching from one to the other. So we need to transform all coordinates.
-    const oldProj = attrToProp(this, 'projection', oldProjAttr !== null, oldProjAttr),
-          newProj = attrToProp(this, 'projection', newProjAttr !== null, newProjAttr),
-          oldCenter = this.center,
-          newCenter = ol.proj.transform(oldCenter, oldProj, newProj);
-    logInfo('update center', {oldCenter, newCenter});
-    this.center = newCenter;
-
-    // @type {ol.View|null}
-    const newView = getView(newProjAttr, this.viewCache_);
-
-    if (newView) {
-      this.mapView_ = newView;
-
-      if (this.connected_) {
-        this.mountView_();
-      }
-    } else {
-      throw new RangeError('Invalid projection.');
-    }
-  }
-
-  /**
-   * Underlying function that actually changes the center.
-   * @param {string} oldCenterAttr
-   * @param {string} newCenterAttr
-   */
-  setCenter_(oldCenterAttr, newCenterAttr) {
-    log('setCenter_', {oldCenterAttr, newCenterAttr});
-
-    if (oldCenterAttr === newCenterAttr) {
-      log('setCenter_', 'no change');
-      return;
-    }
-
-    const newCenter = attrToProp(this, 'center', newCenterAttr !== null, newCenterAttr);
-
-    this.mapView_.setCenter(newCenter);
   }
 
 }

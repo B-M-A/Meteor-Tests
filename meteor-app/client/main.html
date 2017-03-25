@@ -3,8 +3,6 @@
 </head>
 
 <body>
-  <h1>Welcome to Meteor!</h1>
-
   {{> hello}}
 </body>
 
@@ -12,6 +10,7 @@
   <div role="controls">
     <div>
       <button role="trigger-switch-container">Switch Container</button>
+      <button role="trigger-change-view">Change View</button>
     </div>
     <form role="change-basemap-type-by-attr">
       <label>Base Map Type</label>
@@ -42,8 +41,25 @@
 
   <div role="demo">
     <div role="container1">
-      <map-view role="map" basemap="osm">
-        <ul slot="layer-list">Layer List!</ul>
+      <map-view role="map" basemap="osm" center="-10997148, 4569099">
+
+        <map-layer-twms
+          name="example-twms"
+          extent="-13884991, 2870341, -7455066, 6338219"
+          url="https://ahocevar.com/geoserver/wms"
+          params="LAYERS=topp%3Astates&TILED=true"
+          server-type="geoserver"
+        ></map-layer-twms>
+
+
+
+        <map-layer name="some-layer" type="TileWMS" opacity="1" extent="-13884991, 2870341, -7455066, 6338219" options='{
+          "url": "https://ahocevar.com/geoserver/wms",
+          "params": {"LAYERS": "topp:states", "TILED": true},
+          "serverType": "geoserver"
+        }'></map-layer>
+        <map-layer name="some-other-layer" type="OSM" opacity="1" extent="0,0,0,0" options="{}"></map-layer>
+
       </map-view>
     </div>
     <div role="container2"></div>

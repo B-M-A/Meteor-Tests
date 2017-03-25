@@ -1,3 +1,5 @@
+import ol from '../../libs/ol-v4.0.1-dist.js';
+
 import {
   defaultMapType,
   getBaseMap
@@ -6,25 +8,98 @@ import {
   defaultProjection
 } from '../../projections';
 import {
-  defaultCenterString
+  defaultCenterString,
+  getView
 } from '../../view';
+import logging from '../../logging';
+
+const DEBUG = true;
+
+const {
+  log,
+  logInfo,
+  logWarn,
+  logError
+} = logging('map-view', DEBUG);
 
 export const observedAttributes = [
   'disabled',
   'basemap',
   'projection',
-  'center'
+  'center',
+  'test',
 ];
 
+/**
+ * For every handler function.
+ * @param {HTMLElement} context
+ * @param {string|null} oldVal
+ * @param {string|null} newVal
+ */
 const attributeChangeHandlers = {
   'basemap': (context, oldVal, newVal) => {
-    context.setBaseMap_(oldVal, newVal);
+    log('changed:basemap', {oldVal, newVal});
+
+    if (oldVal === newVal) {
+      log('setBaseMap_', 'no change');
+      return;
+    }
+
+    const newType = attrToProp(context, 'basemap', newVal !== null, newVal);
+
+    // @type {ol.layer.Base|null}
+    const newBaseLayer = getBaseMap(newType, context.baseMapCache_);
+
+    context.baseMapLayerCollection_.clear();
+
+    if (newBaseLayer) {
+      context.baseMapLayerCollection_.push(newBaseLayer);
+    } else {
+      throw new RangeError('Invalid base map type.');
+    }
   },
   'projection': (context, oldVal, newVal) => {
-    context.setProjection_(oldVal, newVal);
+    log('changed:projection', {oldVal, newVal});
+
+    if (oldVal === newVal) {
+      log('changed:projection', 'no change');
+      return;
+    }
+
+    // Projection is switching from one to the other. So we need to transform all coordinates.
+    const oldProj = attrToProp(context, 'projection', oldVal !== null, oldVal),
+          newProj = attrToProp(context, 'projection', newVal !== null, newVal);
+
+    log('changed:projection', {oldProj, newProj});
+
+    const oldCenter = context.center,
+          newCenter = ol.proj.transform(oldCenter, oldProj, newProj);
+    context.center = newCenter;
+
+    // @type {ol.View|null}
+    const newView = getView(newVal, context.viewCache_);
+
+    if (newView) {
+      context.view = newView;
+
+      if (context.connected_) {
+        context.mountView_();
+      }
+    } else {
+      throw new RangeError('Invalid projection.');
+    }
   },
   'center': (context, oldVal, newVal) => {
-    context.setCenter_(oldVal, newVal);
+    log('changed:center', {oldVal, newVal});
+
+    if (oldVal === newVal) {
+      log('changed:center', 'no change');
+      return;
+    }
+
+    const newCenter = attrToProp(context, 'center', newVal !== null, newVal);
+
+    context.view.setCenter(newCenter);
   },
 };
 
@@ -71,7 +146,7 @@ const propertyToAttributeConversions = {
   'projection': (val) => {
     return {
       isSet: val !== null,
-      value: String(val)
+      value: val instanceof ol.proj.Projection ? val.getCode() : String(val)
     };
   },
   'center': (val) => {
@@ -133,5 +208,22 @@ export const propToAttr = (context, attrName, propVal) => {
 
 export const attributeChangedCallback = (context, attrName, oldVal, newVal) => {
   const handler = attributeChangeHandlers[attrName];
-  return handler ? handler(context, oldVal, newVal) : null;
+
+  if (!handler) {
+    return null;
+  }
+
+  try {
+    context.respondingAttributeChanges_ = true;
+
+    const result = handler(context, oldVal, newVal);
+
+    context.respondingAttributeChanges_ = false;
+
+    return result;
+  } catch (error) {
+    //! Handle the error better?
+    context.respondingAttributeChanges_ = false;
+    logError(`Failed to handle attribute change. ${error.message}`);
+  }
 };

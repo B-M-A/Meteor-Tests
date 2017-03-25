@@ -49,6 +49,9 @@ class MapLayer extends HTMLElement {
     // `this` is the container HTMLElement.
     // It has no attributes or children at construction time.
 
+    // Attach the openlayers library.
+    this.ol = ol;
+
     // Attach a shadow root to <fancy-tabs>.
     const shadowRoot = this.attachShadow({mode: 'open'});
 
