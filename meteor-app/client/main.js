@@ -82,22 +82,5 @@ Template.hello.events({
           formValues = collectFormValues(form);
 
     $map.attr('projection', formValues.projection);
-  },
-  'click button[role="trigger-change-view"]' (event, instance) {
-    const $map = instance.$('[role="map"]'),
-          mapView = $map[0];
-
-    const newView = new mapView.ol.View({
-      center: [0, 0],
-      constrainRotation: true,
-      enableRotation: true,
-      maxZoom: 28,
-      minZoom: 0,
-      rotation: 0,
-      zoom: 5,
-      zoomFactor: 2
-    });
-
-    mapView.view = newView;
   }
 });
