@@ -1,45 +1,3 @@
-/**
- * Attribute change flow:
- * - attribute on change
- * - parse attribute to property
- * - if fails
- *   - error and revert attribute to the old value
- * - else
- *   - update property (with property setter, throw if error)
- *     - verify new property
- *     - update internal models
- *     - silent update attribute with new property
- *   - if fails
- *     - error and revert attribute to the old value
- *   - else
- *     - dispatch change event
- *     - if canceled
- *       - revert attribute to the old value
- *     - else
- *       - done!
- */
-
-import logging from '../../logging';
-
-const DEBUG = true;
-
-const {
-  log,
-  logInfo,
-  logWarn,
-  logError
-} = logging('map-layer-twms', DEBUG);
-
-export const observedAttributes = [
-  // Url of the layer source.
-  'url',
-  // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping)
-  // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-  'params',
-  // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-  'server-type'
-];
-
 const attrNameToPropNameMapping = {
   'url': 'url',
   'params': 'params',
@@ -57,14 +15,10 @@ export const propNameToAttrName = (name) => {
   return propNameToAttrNameMapping[name] || name;
 };
 
-const attributeValueComparators = {
+export const attributeValueComparators = {
 //   'url': 'url',
 //   'params': 'params',
 //   'server-type': 'serverType',
-};
-const isIdenticalAttributeValue = (attrName, val1, val2) => {
-  const comparator = attributeValueComparators[attrName];
-  return comparator ? comparator(val1, val2) : false;
 };
 
 /**
@@ -73,7 +27,7 @@ const isIdenticalAttributeValue = (attrName, val1, val2) => {
  * @param {string} val
  * @returns {*}
  */
-const attributeToPropertyConversions = {
+export const attributeToPropertyConversions = {
   'url': (isSet, val) => (
     isSet
     ? val
@@ -98,7 +52,7 @@ const attributeToPropertyConversions = {
  * @param {*} val
  * @returns {{isSet: boolean, value: string}}
  */
-const propertyToAttributeConversions = {
+export const propertyToAttributeConversions = {
   'url': (val) => {
     if (val === null) {
       return {isSet: false};
@@ -134,108 +88,4 @@ const propertyToAttributeConversions = {
   },
 //   // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
 //   'server-type'
-};
-
-/**
- * Convert attribute to property.
- * @param {HTMLElement} context
- * @param {string} attrName
- * @param {boolean} [hasAttr] - Optional. If provided, will use this value for conversion.
- * @param {string} [attrVal] - Optional. If provided, will use this value for conversion.
- * @returns {*}
- */
-export const attrToProp = (context, attrName, hasAttr, attrVal) => {
-  if (typeof hasAttr === 'undefined') {
-    hasAttr = context.hasAttribute(attrName);
-  }
-  if (typeof attrVal === 'undefined') {
-    attrVal = context.getAttribute(attrName);
-  }
-
-  const converter = attributeToPropertyConversions[attrName];
-
-  return converter ? converter(hasAttr, attrVal) : (hasAttr ? attrVal : null);
-};
-
-/**
- * Convert property to attribute.
- * @param {HTMLElement} context
- * @param {string} attrName
- * @param {*} propVal
- * @returns {string}
- */
-export const propToAttr = (context, attrName, propVal) => {
-  const converter = propertyToAttributeConversions[attrName];
-
-  if (converter) {
-    const {
-      isSet,
-      value
-    } = converter(propVal);
-
-    if (isSet) {
-      context.setAttribute(attrName, value);
-    } else {
-      context.removeAttribute(attrName);
-    }
-  } else {
-    context.setAttribute(attrName, String(propVal));
-  }
-
-  return context.getAttribute(attrName);
-};
-
-export const attributeChangedCallback = (context, attrName, oldVal, newVal) => {
-  let cancelled = false;
-
-  try {
-    // Mark the attribute as being updated so changing its value during the process doesn't cause another reaction (and dead loop).
-    context.changingAttributes_[attrName] = true;
-
-    const propName = attrNameToPropName(attrName),
-          eventName = `changed:${propName}`;
-
-    if (isIdenticalAttributeValue(attrName, oldVal, newVal)) {
-      log(eventName, 'no change');
-    } else {
-      // Attribute-to-property conversion function should verify attribute value and throw if needed.
-      const newPropVal = attrToProp(context, attrName, newVal !== null, newVal);
-      const oldPropVal = context[propName];
-
-      // Setter should verify new property value and throw if needed.
-      context[propName] = newPropVal;
-
-      log(eventName, {oldVal: oldPropVal, newVal: newPropVal});
-
-      // Dispatch change event.
-      const event = new CustomEvent(eventName, {
-        bubbles: true,
-        cancelable: true,
-        scoped: false,
-        composed: false,
-        detail: {
-          property: propName,
-          newValue: newPropVal
-        }
-      });
-
-      cancelled = !this.dispatchEvent(event);
-    }
-  } catch (error) {
-    logError(`Failed to handle attribute change. ${error.message}`, {attrName, oldVal, newVal});
-
-    //! Handle the error better?
-    cancelled = true;
-  } finally {
-    context.changingAttributes_[attrName] = false;
-
-    if (cancelled) {
-      // Revert the attribute to the old value.
-      if (oldVal === null) {
-        context.removeAttribute(attrName);
-      } else {
-        context.setAttribute(attrName, oldVal);
-      }
-    }
-  }
 };

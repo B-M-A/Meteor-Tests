@@ -1,28 +1,84 @@
+import _ from 'lodash';
+
 import ol from '../../libs/ol-v4.0.1-dist.js';
 
+import BaseClass from '../base';
+
 import {
-  observedAttributes,
-  attrToProp,
-  propToAttr,
-  propNameToAttrName,
-  attributeChangedCallback,
+  attributeToPropertyConversions,
+  propertyToAttributeConversions,
+  attributeValueComparators,
 } from './attributes';
 
-const self = class HTMLMapLayerBase extends HTMLElement {
+export default class HTMLMapLayerBase extends BaseClass {
 
   /**
-   * Lifecycle:
-   * - constructor
-   * - attributeChangedCallback
-   * - connectedCallback
-   * - [attributeChangedCallback]
-   * - [disconnectedCallback]
-   * - [connectedCallback]
-   * - [...]
+   * Keys are attribute names.
+   * Values are property names.
+   * @property {Object.<string>}
+   * @readonly
    */
+  static get attributeNameToPropertyNameMapping () {
+    return _.merge({}, super.attributeNameToPropertyNameMapping, {
+      'name': 'name',
+      'opacity': 'opacity',
+      'extent': 'extent'
+    });
+  }
+
+  /**
+   * Keys are property names.
+   * Values are attribute names.
+   * @property {Object.<string>}
+   * @readonly
+   */
+  static get propertyNameToAttributeNameMapping () {
+    return _.merge({}, super.propertyNameToAttributeNameMapping, {
+      'name': 'name',
+      'opacity': 'opacity',
+      'extent': 'extent'
+    });
+  }
+
+  /**
+   * Keys are attribute names.
+   * Values are functions that convert attribute configs to property values.
+   * @property {Object.<isSet: boolean, val: string -> *>}
+   * @readonly
+   */
+  static get attributeToPropertyConverters() {
+    return _.merge({}, super.attributeToPropertyConverters, attributeToPropertyConversions);
+  }
+
+  /**
+   * Keys are attribute names.
+   * Values are functions that convert property values to attribute configs.
+   * @property {Object.<* -> {isSet: boolean, value: string}>}
+   * @readonly
+   */
+  static get propertyToAttributeConverters() {
+    return _.merge({}, super.propertyToAttributeConverters, propertyToAttributeConversions);
+  }
+
+  /**
+   * Keys are attribute names.
+   * Values are functions that compare two attribute values and return whether they are considered identical.
+   * @property {Object.<* -> {a: *, b: * -> boolean}>}
+   * @readonly
+   */
+  static get attributeComparators() {
+    return _.merge({}, super.attributeComparators, attributeValueComparators);
+  }
 
   static get observedAttributes() {
-    return observedAttributes;
+    return _.concat(super.observedAttributes, [
+      // Unique name for the layer.
+      'name',
+      // Opacity of the layer.
+      'opacity',
+      // Extent of the layer.
+      'extent',
+    ]);
   }
 
   /**
@@ -34,53 +90,9 @@ const self = class HTMLMapLayerBase extends HTMLElement {
     // `this` is the container HTMLElement.
     // It has no attributes or children at construction time.
 
-    // Attach the openlayers library.
-    this.ol = ol;
-
-    // Indicate whether this custom element is in DOM or not.
-    this.connected_ = false;
-
     // @type {ol.layer.Base}
     this.olLayer_ = null;
-
-    // This namespace stores flags indicating what attributes are being changed.
-    this.changingAttributes_ = {};
   }
-
-  /**
-   * Called every time the element is inserted into the DOM. Useful for running setup code, such as fetching resources or rendering. Generally, you should try to delay work until this time.
-   */
-  connectedCallback() {
-    this.connected_ = true;
-  }
-
-  /**
-   * Called every time the element is removed from the DOM. Useful for running clean up code (removing event listeners, etc.).
-   */
-  disconnectedCallback() {
-    this.connected_ = false;
-  }
-
-  /**
-   * An attribute was added, removed, updated, or replaced. Also called for initial values when an element is created by the parser, or upgraded. Note: only attributes listed in the observedAttributes property will receive this callback.
-   */
-  attributeChangedCallback(attrName, oldVal, newVal) {
-    // Only care about the attributes in the observed list.
-    if (observedAttributes.indexOf(attrName) === -1) {
-      return;
-    }
-
-    // If this attribute is already being updated, do not trigger a reaction again.
-    if (this.changingAttributes_[attrName]) {
-      return;
-    }
-    attributeChangedCallback(this, attrName, oldVal, newVal);
-  }
-
-  /**
-   * The custom element has been moved into a new document (e.g. someone called document.adoptNode(el)).
-   */
-  adoptedCallback() {}
 
   /**
    * Getters and Setters (for properties).
@@ -94,10 +106,10 @@ const self = class HTMLMapLayerBase extends HTMLElement {
 
   // @property {string} name
   get name() {
-    return attrToProp(this, propNameToAttrName('name'));
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('name'));
   }
   set name(val) {
-    propToAttr(this, propNameToAttrName('name'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('name'), val);
 
     // Update internal models.
     this.olLayer_.set('name', val);
@@ -105,10 +117,10 @@ const self = class HTMLMapLayerBase extends HTMLElement {
 
   // @property {number} opacity
   get opacity() {
-    return attrToProp(this, propNameToAttrName('opacity'));
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('opacity'));
   }
   set opacity(val) {
-    propToAttr(this, propNameToAttrName('opacity'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('opacity'), val);
 
     // Update internal models.
     this.olLayer_.setOpacity(val);
@@ -116,14 +128,17 @@ const self = class HTMLMapLayerBase extends HTMLElement {
 
   // @property {Array.<number>} extent
   get extent() {
-    return attrToProp(this, propNameToAttrName('extent'));
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('extent'));
   }
   set extent(val) {
-    propToAttr(this, propNameToAttrName('extent'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('extent'), val);
 
     // Update internal models.
     this.olLayer_.setExtent(val);
   }
-}
 
-export default self;
+  /**
+   * Customized public/private methods.
+   */
+
+};

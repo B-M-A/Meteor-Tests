@@ -309,7 +309,7 @@ const self = class HTMLMapView extends HTMLElement {
     this.childMapLayerCollection_.extend(layers);
   }
 
-}
+};
 
 customElements.define('map-view', self);
 
