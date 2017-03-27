@@ -1,5 +1,7 @@
 import { _ } from 'lodash';
 
+import HTMLMapLayerBase from '/imports/custom-elements/MapView/elements/map-layer-base';
+
 import ol from '../../libs/ol-v4.0.1-dist.js';
 
 import {
@@ -24,9 +26,7 @@ const {
   logError
 } = logging('map-layer-twms', DEBUG);
 
-const defaultOpacity = 1;
-
-class MapLayer extends HTMLElement {
+const self = class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
   /**
    * Lifecycle:
@@ -40,7 +40,7 @@ class MapLayer extends HTMLElement {
    */
 
   static get observedAttributes() {
-    return observedAttributes;
+    return super.observedAttributes.concat(observedAttributes);
   }
 
   /**
@@ -54,14 +54,8 @@ class MapLayer extends HTMLElement {
     // `this` is the container HTMLElement.
     // It has no attributes or children at construction time.
 
-    // Attach the openlayers library.
-    this.ol = ol;
-
     // Attach a shadow root to <fancy-tabs>.
     const shadowRoot = this.attachShadow({mode: 'open'});
-
-    // Indicate whether this custom element is in DOM or not.
-    this.connected_ = false;
 
     // @type {ol.source.Source}
     this.olSource_ = /*null*/ new ol.source.TileWMS();
@@ -83,7 +77,7 @@ class MapLayer extends HTMLElement {
   connectedCallback() {
     log('connected');
 
-    this.connected_ = true;
+    super.connectedCallback();
 
     this.updateLayer_();
   }
@@ -94,13 +88,22 @@ class MapLayer extends HTMLElement {
   disconnectedCallback() {
     log('disconnected');
 
-    this.connected_ = false;
+    super.disconnectedCallback();
+
+    //!
   }
 
   /**
    * An attribute was added, removed, updated, or replaced. Also called for initial values when an element is created by the parser, or upgraded. Note: only attributes listed in the observedAttributes property will receive this callback.
    */
   attributeChangedCallback(attrName, oldVal, newVal) {
+    super.attributeChangedCallback(attrName, oldVal, newVal);
+
+    // Only care about the attributes in the observed list.
+    if (observedAttributes.indexOf(attrName) === -1) {
+      return;
+    }
+
     // If this attribute is already being updated, do not trigger a reaction again.
     if (this.changingAttributes_[attrName]) {
       log('attribute change suppressed', {attrName, oldVal, newVal});
@@ -115,50 +118,13 @@ class MapLayer extends HTMLElement {
   /**
    * The custom element has been moved into a new document (e.g. someone called document.adoptNode(el)).
    */
-  adoptedCallback() {}
+  adoptedCallback() {
+    super.adoptedCallback();
+  }
 
   /**
    * Getters and Setters (for properties).
    */
-
-  // @property {ol.layer.Base} layer
-  // @readonly
-  get layer() {
-    return this.olLayer_;
-  }
-
-  // @property {string} name
-  get name() {
-    return attrToProp(this, propNameToAttrName('name'));
-  }
-  set name(val) {
-    propToAttr(this, propNameToAttrName('name'), val);
-
-    // Update internal models.
-    this.olLayer_.set('name', val);
-  }
-
-  // @property {number} opacity
-  get opacity() {
-    return attrToProp(this, propNameToAttrName('opacity'));
-  }
-  set opacity(val) {
-    propToAttr(this, propNameToAttrName('opacity'), val);
-
-    // Update internal models.
-    this.olLayer_.setOpacity(val);
-  }
-
-  // @property {Array.<number>} extent
-  get extent() {
-    return attrToProp(this, propNameToAttrName('extent'));
-  }
-  set extent(val) {
-    propToAttr(this, propNameToAttrName('extent'), val);
-
-    // Update internal models.
-    this.olLayer_.setExtent(val);
-  }
 
   // @property {string} url
   get url() {
@@ -233,4 +199,6 @@ class MapLayer extends HTMLElement {
 
 }
 
-customElements.define('map-layer-twms', MapLayer);
+customElements.define('map-layer-twms', self);
+
+export default self;

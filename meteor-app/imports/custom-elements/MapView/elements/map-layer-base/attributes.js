@@ -28,44 +28,46 @@ const {
   logInfo,
   logWarn,
   logError
-} = logging('map-layer-twms', DEBUG);
+} = logging('map-layer-base', DEBUG);
 
 export const observedAttributes = [
-  // Url of the layer source.
-  'url',
-  // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping)
-  // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-  'params',
-  // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-  'server-type'
+  // Unique name for the layer.
+  'name',
+  // Opacity of the layer.
+  'opacity',
+  // Extent of the layer.
+  'extent',
 ];
 
 const attrNameToPropNameMapping = {
-  'url': 'url',
-  'params': 'params',
-  'server-type': 'serverType',
+  'name': 'name',
+  'opacity': 'opacity',
+  'extent': 'extent',
 };
 export const attrNameToPropName = (name) => {
   return attrNameToPropNameMapping[name] || name;
 };
 const propNameToAttrNameMapping = {
-  'url': 'url',
-  'params': 'params',
-  'serverType': 'server-type',
+  'name': 'name',
+  'opacity': 'opacity',
+  'extent': 'extent',
 };
 export const propNameToAttrName = (name) => {
   return propNameToAttrNameMapping[name] || name;
 };
 
 const attributeValueComparators = {
-//   'url': 'url',
-//   'params': 'params',
-//   'server-type': 'serverType',
+  'name': (a, b) => a === b || String(a).trim() === String(b).trim(),
+//   'opacity': 'opacity',
+//   'extent': 'extent',
 };
 const isIdenticalAttributeValue = (attrName, val1, val2) => {
   const comparator = attributeValueComparators[attrName];
   return comparator ? comparator(val1, val2) : false;
 };
+
+// @type {number}
+const defaultOpacity = 1;
 
 /**
  * For every conversion function.
@@ -74,22 +76,22 @@ const isIdenticalAttributeValue = (attrName, val1, val2) => {
  * @returns {*}
  */
 const attributeToPropertyConversions = {
-  'url': (isSet, val) => (
+  'name': (isSet, val) => (
     isSet
     ? val
     : undefined
   ),
-  'params': (isSet, val) => (
+  'opacity': (isSet, val) => (
     isSet
-    ? val.split('&')
-         .map((pairStr) => pairStr.split('=').map((x) => decodeURIComponent(x)))
-         .reduce((acc, [key, value]) => ({...acc, [key]: value}), {})
-    : {}
+    ? parseFloat(val)
+    : defaultOpacity
   ),
-  'server-type': (isSet, val) => (
+  'extent': (isSet, val) => (
     isSet
-    ? val
-    : undefined
+    ? val.split(',')
+        .map(v => v.trim())
+        .map(v => parseFloat(v))
+    : null
   ),
 };
 
@@ -99,13 +101,14 @@ const attributeToPropertyConversions = {
  * @returns {{isSet: boolean, value: string}}
  */
 const propertyToAttributeConversions = {
-  'url': (val) => {
+  // @param {string|null} val - String value to be set, null to unset.
+  'name': (val) => {
     if (val === null) {
       return {isSet: false};
     }
 
     if (typeof val !== 'string') {
-      throw new TypeError('Layer url has to be a string.');
+      throw new TypeError('Layer name has to be a string.');
     }
 
     return {
@@ -113,27 +116,36 @@ const propertyToAttributeConversions = {
       value: val
     };
   },
-  'params': (val) => {
+  // @param {number|null} val - Number value to be set, null to unset.
+  'opacity': (val) => {
     if (val === null) {
       return {isSet: false};
     }
 
-    if (typeof val !== 'object') {
-      throw new TypeError('Layer params has to be an object.');
+    if (typeof val !== 'number') {
+      throw new TypeError('Layer opacity has to be a number.');
     }
 
     return {
       isSet: true,
-      value: Object.keys(val)
-             .map((key) => [key, val[key]]
-                           .map((x) => encodeURIComponent(x))
-                           .join('=')
-                 )
-             .join('&')
+      value: String(val)
     };
   },
-//   // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-//   'server-type'
+  // @param {Array.<number>|null} val - Array of 4 numbers value to be set, null to unset.
+  'extent': (val) => {
+    if (val === null) {
+      return {isSet: false};
+    }
+
+    if (!(Array.isArray(val) && val.every(x => typeof x === 'number') && val.length === 4)) {
+      throw new TypeError('Layer extent has to be an array of 4 numbers.');
+    }
+
+    return {
+      isSet: true,
+      value: val.join(', ')
+    };
+  },
 };
 
 /**
