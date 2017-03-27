@@ -1,5 +1,7 @@
 import ol from '../../libs/ol-v4.0.1-dist.js';
 
+import HTMLMapLayerBase from '../map-layer-base';
+
 import {
   observedAttributes,
   attrToProp,
@@ -35,8 +37,12 @@ const getElementAttributes = (element) => {
   return attrs;
 };
 
+/**
+ * NodeList -> Array.<Node>
+ */
+const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
 
-class MapView extends HTMLElement {
+const self = class HTMLMapView extends HTMLElement {
 
   /**
    * Lifecycle:
@@ -90,6 +96,8 @@ class MapView extends HTMLElement {
 
     this.mapInteractions_ = new ol.Collection();
 
+    this.childMapLayerCollection_ = new ol.Collection();
+
     this.baseMapLayerCollection_ = new ol.Collection([
       getBaseMap(this.basemap, this.baseMapCache_)
     ].filter(Boolean) /* Get rid of any null values that may piss Openlayers */);
@@ -108,7 +116,14 @@ class MapView extends HTMLElement {
           //extent:
           zIndex: 0,
           layers: this.baseMapLayerCollection_
-        })
+        }),
+        new ol.layer.Group({
+          opacity: 1,
+          visible: 1,
+          //extent:
+          zIndex: 1,
+          layers: this.childMapLayerCollection_
+        }),
       ],
       loadTilesWhileAnimating: false,
       loadTilesWhileInteracting: false,
@@ -120,30 +135,32 @@ class MapView extends HTMLElement {
     });
 
     this.contentMutationObserver_ = new MutationObserver((mutations) => {
-      const addedElements = [],
-            removedElements = [];
+      let addedElements = [],
+          removedElements = [];
 
       mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) {
-            addedElements.push(node);
-          }
-        });
-        mutation.removedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) {
-            removedElements.push(node);
-          }
-        });
+        const {
+          addedNodes,
+          removedNodes,
+        } = mutation;
+
+        addedElements = addedElements.concat(getArrayFromNodeList(addedNodes).filter(node => node instanceof HTMLElement));
+        removedElements = removedElements.concat(getArrayFromNodeList(removedNodes).filter(node => node instanceof HTMLElement));
       });
 
-      console.log('mutation', {addedElements, removedElements});
+      console.info('mutation', {addedElements, removedElements});
+
+      // Scan sub-level for layers.
+      this.updateLayers_();
     });
+
     this.contentMutationObserverConfig_ = {
-      attributes: false,
+      attributes: true,
       childList: true,
       characterData: false,
-      subtree: false
+      subtree: true
     };
+
     this.contentMutationObserver_.observe(this, this.contentMutationObserverConfig_);
     //this.layerListMutationObserver_.disconnect();
 
@@ -268,6 +285,32 @@ class MapView extends HTMLElement {
     this.olMap_.setView(null);
   }
 
+  updateLayers_() {
+    log('updateLayers_');
+
+    const layerElements = [];
+
+    // DFS all the layer elements.
+    let dfsStack = [this];
+    while (dfsStack.length > 0) {
+      const thisElement = dfsStack.pop();
+
+      if (thisElement instanceof HTMLMapLayerBase) {
+        layerElements.push(thisElement);
+      } else {
+        const childElements = getArrayFromNodeList(thisElement.children).filter(node => node instanceof HTMLElement);
+        dfsStack = dfsStack.concat(childElements.reverse());
+      }
+    }
+
+    const layers = layerElements.map(element => element.layer);
+
+    this.childMapLayerCollection_.clear();
+    this.childMapLayerCollection_.extend(layers);
+  }
+
 }
 
-customElements.define('map-view', MapView);
+customElements.define('map-view', self);
+
+export default self;

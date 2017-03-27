@@ -1,3 +1,24 @@
+/**
+ * Attribute change flow:
+ * - attribute on change
+ * - parse attribute to property
+ * - if fails
+ *   - error and revert attribute to the old value
+ * - else
+ *   - update property (with property setter, throw if error)
+ *     - verify new property
+ *     - update internal models
+ *     - silent update attribute with new property
+ *   - if fails
+ *     - error and revert attribute to the old value
+ *   - else
+ *     - dispatch change event
+ *     - if canceled
+ *       - revert attribute to the old value
+ *     - else
+ *       - done!
+ */
+
 import ol from '../../libs/ol-v4.0.1-dist.js';
 
 import {
@@ -27,8 +48,38 @@ export const observedAttributes = [
   'basemap',
   'projection',
   'center',
-  'test',
+  'test', //!
 ];
+
+const attrNameToPropNameMapping = {
+  'disabled': 'disabled',
+  'basemap': 'basemap',
+  'projection': 'projection',
+  'center': 'center',
+};
+export const attrNameToPropName = (name) => {
+  return attrNameToPropNameMapping[name] || name;
+};
+const propNameToAttrNameMapping = {
+  'disabled': 'disabled',
+  'basemap': 'basemap',
+  'projection': 'projection',
+  'center': 'center',
+};
+export const propNameToAttrName = (name) => {
+  return propNameToAttrNameMapping[name] || name;
+};
+
+const attributeValueComparators = {
+//   'disabled': 'disabled',
+//   'basemap': 'basemap',
+//   'projection': 'projection',
+//   'center': 'center',
+};
+const isIdenticalAttributeValue = (attrName, val1, val2) => {
+  const comparator = attributeValueComparators[attrName];
+  return comparator ? comparator(val1, val2) : false;
+};
 
 /**
  * For every handler function.

@@ -1,6 +1,6 @@
 import { _ } from 'lodash';
 
-import HTMLMapLayerBase from '/imports/custom-elements/MapView/elements/map-layer-base';
+import HTMLMapLayerBase from '../map-layer-base';
 
 import ol from '../../libs/ol-v4.0.1-dist.js';
 
