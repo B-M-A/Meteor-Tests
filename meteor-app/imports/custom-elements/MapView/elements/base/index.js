@@ -165,7 +165,8 @@ export default class BaseClass extends HTMLElement {
       return;
     }
 
-    //!attributeChangedCallback(this, attrName, oldVal, newVal);
+    this.log_('attributeChangedCallback', {attrName, oldVal, newVal});
+
     let cancelled = false;
 
     try {
@@ -174,11 +175,11 @@ export default class BaseClass extends HTMLElement {
 
       const propName = this.constructor.getPropertyNameByAttributeName_(attrName),
             eventName = `changed:${propName}`,
-            oldPropVal = this[propName],
+            oldPropVal = this.getPropertyValueFromAttribute_(attrName, oldVal !== null, oldVal), //this[propName],
             newPropVal = this.getPropertyValueFromAttribute_(attrName, newVal !== null, newVal);
 
       if (this.isIdenticalPropertyValue_(propName, oldPropVal, newPropVal)) {
-        this.log_(eventName, 'no change');
+        this.log_(eventName, 'no change', {oldPropVal, newPropVal});
       } else {
         // Setter should verify new property value and throw if needed.
         this[propName] = newPropVal;
@@ -256,8 +257,8 @@ export default class BaseClass extends HTMLElement {
    * string, *, * -> boolean
    * @private
    */
-  isIdenticalPropertyValue_(attrName, val1, val2) {
-    const comparator = this.constructor.propertyComparators[attrName];
+  isIdenticalPropertyValue_(propName, val1, val2) {
+    const comparator = this.constructor.propertyComparators[propName];
     return comparator ? comparator(val1, val2) : false;
   }
 

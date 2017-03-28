@@ -71,7 +71,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     return _.merge({}, super.propertyComparators, {
       'name': (a, b) => a === b,
       'opacity': (a, b) => a === b,
-    //   'extent': 'extent',
+      'extent': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
     });
   }
 
@@ -123,7 +123,10 @@ export default class HTMLMapLayerBase extends BaseClass {
     }
 
     // Update internal models.
-    this.olLayer_.set('name', val);
+    const oldVal = this.olLayer_.get('name');
+    if (!this.isIdenticalPropertyValue_('name', oldVal, val)) {
+      this.olLayer_.set('name', val);
+    }
 
     // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('name'), val);
@@ -145,7 +148,10 @@ export default class HTMLMapLayerBase extends BaseClass {
     }
 
     // Update internal models.
-    this.olLayer_.setOpacity(val);
+    const oldVal = this.olLayer_.getOpacity();
+    if (!this.isIdenticalPropertyValue_('opacity', oldVal, val)) {
+      this.olLayer_.setOpacity(val);
+    }
 
     // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('opacity'), val);
@@ -161,7 +167,10 @@ export default class HTMLMapLayerBase extends BaseClass {
     }
 
     // Update internal models.
-    this.olLayer_.setExtent(val);
+    const oldVal = this.olLayer_.getExtent() || null;
+    if (!this.isIdenticalPropertyValue_('extent', oldVal, val)) {
+      this.olLayer_.setExtent(val);
+    }
 
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('extent'), val);
   }

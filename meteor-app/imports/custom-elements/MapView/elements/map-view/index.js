@@ -113,10 +113,10 @@ export default class HTMLMapView extends BaseClass {
 
   static get propertyComparators() {
     return _.merge({}, super.propertyComparators, {
-//       'disabled': 'disabled',
-//       'basemap': 'basemap',
-//       'projection': 'projection',
-//       'center': 'center',
+      'disabled': (a, b) => a === b,
+      'basemap': (a, b) => a === b,
+      'projection': (a, b) => a === b,
+      'center': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
     });
   }
 
@@ -146,6 +146,9 @@ export default class HTMLMapView extends BaseClass {
     // Attach a shadow root to <fancy-tabs>.
     const shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.innerHTML = shadowRootHTML;
+
+    // Define bound/debounced/callback functions before the rest stuff.
+    this.boundViewChangeCenterHandler_ = _.debounce(this.viewChangeCenterHandler_.bind(this), 30);
 
     // Get references to all elements here.
     this.mapElement_ = shadowRoot.querySelector('#map');
@@ -179,7 +182,10 @@ export default class HTMLMapView extends BaseClass {
     ]);
 
     // Stores the active ol.View.
-    this.mapView_ = getView(defaultProjection, this.viewCache_);
+    this.mapView_ = null;
+
+    const defaultView = getView(defaultProjection, this.viewCache_);
+    this.setView_(defaultView);
 
     this.olMap_ = new ol.Map({
       //controls: this.mapControls_,
@@ -246,7 +252,6 @@ export default class HTMLMapView extends BaseClass {
 
     this.contentMutationObserver_.observe(this, this.contentMutationObserverConfig_);
     //this.layerListMutationObserver_.disconnect();
-
 
     //! Test default property values.
     this.logInfo_({
@@ -341,33 +346,35 @@ export default class HTMLMapView extends BaseClass {
     }
 
     // Update internal models.
+    const oldVal = this.mapView_.getProjection().getCode();
+    if (!this.isIdenticalPropertyValue_('projection', oldVal, val)) {
+      // @type {ol.View|null}
+      const newView = getView(val, this.viewCache_);
 
-    // @type {ol.View|null}
-    const newView = getView(val, this.viewCache_);
+      if (newView === null) {
+        throw new TypeError('Invalid projection.');
+      } else {
+        const oldProj = this.mapView_.getProjection(),
+              newProj = newView.getProjection(),
+              oldCenter = this.mapView_.getCenter(),
+              newCenter = this.ol.proj.transform(oldCenter, oldProj, newProj);
 
-    if (newView === null) {
-      throw new TypeError('Invalid projection.');
-    } else {
-      const oldProj = this.mapView_.getProjection(),
-            newProj = newView.getProjection(),
-            oldCenter = this.mapView_.getCenter(),
-            newCenter = this.ol.proj.transform(oldCenter, oldProj, newProj);
+        // Update layer coordinates.
+        this.childMapLayerElementCollection_.forEach((element) => {
+          const oldExtent = element.extent;
 
-      // Update layer coordinates.
-      this.childMapLayerElementCollection_.forEach((element) => {
-        const oldExtent = element.extent;
+          if (oldExtent !== null) {
+            const newExtent = this.ol.proj.transformExtent(oldExtent, oldProj, newProj);
+            element.extent = newExtent;
+          }
+        });
 
-        if (oldExtent !== null) {
-          const newExtent = this.ol.proj.transformExtent(oldExtent, oldProj, newProj);
-          element.extent = newExtent;
+        this.center = newCenter;
+        this.setView_(newView);
+
+        if (this.connected_) {
+          this.mountView_();
         }
-      });
-
-      this.center = newCenter;
-      this.mapView_ = newView;
-
-      if (this.connected_) {
-        this.mountView_();
       }
     }
 
@@ -385,7 +392,10 @@ export default class HTMLMapView extends BaseClass {
     }
 
     // Update internal models.
-    this.mapView_.setCenter(val);
+    const oldVal = this.mapView_.getCenter();
+    if (!this.isIdenticalPropertyValue_('center', oldVal, val)) {
+      this.mapView_.setCenter(val);
+    }
 
     // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('center'), val);
@@ -399,6 +409,26 @@ export default class HTMLMapView extends BaseClass {
   /**
    * Customized public/private methods.
    */
+
+  setView_(newView) {
+    const oldView = this.mapView_;
+
+    if (oldView) {
+      // Detach listeners.
+      oldView.un('change:center', this.boundViewChangeCenterHandler_);
+    }
+
+    if (newView) {
+      // Attach listeners.
+      newView.on('change:center', this.boundViewChangeCenterHandler_);
+    }
+
+    this.mapView_ = newView;
+  }
+
+  viewChangeCenterHandler_({ type, key, oldValue, target }) {
+    this.center = target.getCenter();
+  }
 
   mountView_() {
     this.log_('mountView_');
