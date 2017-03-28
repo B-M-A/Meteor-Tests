@@ -1,73 +1,78 @@
 import _ from 'lodash';
-
-import ol from '../../libs/ol-v4.0.1-dist.js';
+import {
+  typeCheck
+} from 'type-check';
 
 import BaseClass from '../base';
 
-import {
-  attributeToPropertyConversions,
-  propertyToAttributeConversions,
-  attributeValueComparators,
-} from './attributes';
+const defaultOpacity = 1;
 
 export default class HTMLMapLayerBase extends BaseClass {
 
-  /**
-   * Keys are attribute names.
-   * Values are property names.
-   * @property {Object.<string>}
-   * @readonly
-   */
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'name': 'name',
       'opacity': 'opacity',
-      'extent': 'extent'
+      'extent': 'extent',
     });
   }
 
-  /**
-   * Keys are property names.
-   * Values are attribute names.
-   * @property {Object.<string>}
-   * @readonly
-   */
   static get propertyNameToAttributeNameMapping () {
     return _.merge({}, super.propertyNameToAttributeNameMapping, {
       'name': 'name',
       'opacity': 'opacity',
-      'extent': 'extent'
+      'extent': 'extent',
     });
   }
 
-  /**
-   * Keys are attribute names.
-   * Values are functions that convert attribute configs to property values.
-   * @property {Object.<isSet: boolean, val: string -> *>}
-   * @readonly
-   */
   static get attributeToPropertyConverters() {
-    return _.merge({}, super.attributeToPropertyConverters, attributeToPropertyConversions);
+    return _.merge({}, super.attributeToPropertyConverters, {
+      'name': (isSet, val) => (
+        isSet
+        ? val.trim()
+        : null
+      ),
+      'opacity': (isSet, val) => (
+        isSet
+        ? parseFloat(val)
+        : null
+      ),
+      'extent': (isSet, val) => (
+        isSet
+        ? val.split(',')
+            .map(v => v.trim())
+            .map(v => parseFloat(v))
+        : null
+      ),
+    });
   }
 
-  /**
-   * Keys are attribute names.
-   * Values are functions that convert property values to attribute configs.
-   * @property {Object.<* -> {isSet: boolean, value: string}>}
-   * @readonly
-   */
   static get propertyToAttributeConverters() {
-    return _.merge({}, super.propertyToAttributeConverters, propertyToAttributeConversions);
+    return _.merge({}, super.propertyToAttributeConverters, {
+      // @param {string|null} val - String value to be set, null to unset.
+      'name': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val,
+      }),
+      // @param {number|null} val - Number value to be set, null to unset.
+      'opacity': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : String(val),
+      }),
+      // @param {Array.<number>|null} val - Array of 4 numbers value to be set, null to unset.
+      'extent': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val.join(', '),
+      }),
+    });
   }
 
-  /**
-   * Keys are attribute names.
-   * Values are functions that compare two attribute values and return whether they are considered identical.
-   * @property {Object.<* -> {a: *, b: * -> boolean}>}
-   * @readonly
-   */
-  static get attributeComparators() {
-    return _.merge({}, super.attributeComparators, attributeValueComparators);
+  static get propertyComparators() {
+    return _.merge({}, super.propertyComparators, {
+      'name': (a, b) => a === b,
+      'opacity': (a, b) => a === b,
+    //   'extent': 'extent',
+    });
   }
 
   static get observedAttributes() {
@@ -109,10 +114,19 @@ export default class HTMLMapLayerBase extends BaseClass {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('name'));
   }
   set name(val) {
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('name'), val);
+    if (!typeCheck('String | Null', val)) {
+      throw new TypeError('Layer name has to be a string.');
+    }
+
+    if (typeCheck('String', val)) {
+      val = val.trim();
+    }
 
     // Update internal models.
     this.olLayer_.set('name', val);
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('name'), val);
   }
 
   // @property {number} opacity
@@ -120,10 +134,21 @@ export default class HTMLMapLayerBase extends BaseClass {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('opacity'));
   }
   set opacity(val) {
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('opacity'), val);
+    if (!typeCheck('Number | Null', val)) {
+      throw new TypeError('Layer opacity has to be a number.');
+    }
+
+    if (typeCheck('Number', val)) {
+      if (val > 1 || val < 0) {
+        throw new RangeError('Layer opacity should be between 0 and 1.');
+      }
+    }
 
     // Update internal models.
     this.olLayer_.setOpacity(val);
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('opacity'), val);
   }
 
   // @property {Array.<number>} extent
@@ -131,14 +156,24 @@ export default class HTMLMapLayerBase extends BaseClass {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('extent'));
   }
   set extent(val) {
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('extent'), val);
+    if (!typeCheck('(Number, Number, Number, Number) | Null', val)) {
+      throw new TypeError('Layer extent has to be an array of 4 numbers.');
+    }
 
     // Update internal models.
     this.olLayer_.setExtent(val);
+
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('extent'), val);
   }
 
   /**
    * Customized public/private methods.
    */
 
-};
+}
+
+HTMLMapLayerBase.propertyComparators = _.merge({}, HTMLMapLayerBase.prototype.constructor.propertyComparators, {
+  'name': (a, b) => a === b,
+  'opacity': (a, b) => a === b,
+//   'extent': 'extent',
+});

@@ -1,84 +1,99 @@
 import { _ } from 'lodash';
+import {
+  typeCheck
+} from 'type-check';
 
 import HTMLMapLayerBase from '../map-layer-base';
 
-import {
-  attributeToPropertyConversions,
-  propertyToAttributeConversions,
-  attributeValueComparators,
-} from './attributes';
-import { defaultProjection } from '../../projections';
-import logging from '../../logging';
-
-/*global customElements, HTMLElement*/
-
-const DEBUG = true;
-
-const {
-  log,
-  logInfo,
-  logWarn,
-  logError
-} = logging('map-layer-twms', DEBUG);
+/*global customElements*/
 
 export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
-  /**
-   * Keys are attribute names.
-   * Values are property names.
-   * @property {Object.<string>}
-   * @readonly
-   */
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'url': 'url',
       'params': 'params',
-      'server-type': 'serverType'
+      'server-type': 'serverType',
     });
   }
 
-  /**
-   * Keys are property names.
-   * Values are attribute names.
-   * @property {Object.<string>}
-   * @readonly
-   */
   static get propertyNameToAttributeNameMapping () {
     return _.merge({}, super.propertyNameToAttributeNameMapping, {
       'url': 'url',
       'params': 'params',
-      'serverType': 'server-type'
+      'serverType': 'server-type',
     });
   }
 
-  /**
-   * Keys are attribute names.
-   * Values are functions that convert attribute configs to property values.
-   * @property {Object.<isSet: boolean, val: string -> *>}
-   * @readonly
-   */
   static get attributeToPropertyConverters() {
-    return _.merge({}, super.attributeToPropertyConverters, attributeToPropertyConversions);
+    return _.merge({}, super.attributeToPropertyConverters, {
+      'url': (isSet, val) => (
+        isSet
+        ? val
+        : null
+      ),
+      'params': (isSet, val) => (
+        isSet
+        ? val.split('&')
+             .map((pairStr) => pairStr.split('=').map((x) => decodeURIComponent(x)))
+             .reduce((acc, [key, value]) => ({...acc, [key]: value}), {})
+        : {}
+      ),
+      'server-type': (isSet, val) => (
+        isSet
+        ? val
+        : null
+      ),
+    });
   }
 
-  /**
-   * Keys are attribute names.
-   * Values are functions that convert property values to attribute configs.
-   * @property {Object.<* -> {isSet: boolean, value: string}>}
-   * @readonly
-   */
   static get propertyToAttributeConverters() {
-    return _.merge({}, super.propertyToAttributeConverters, propertyToAttributeConversions);
+    return _.merge({}, super.propertyToAttributeConverters, {
+      'url': (val) => {
+        // Null is allowed for clearing the url.
+        if (val === null) {
+          return {isSet: false};
+        }
+
+        if (typeof val !== 'string') {
+          throw new TypeError('Layer url has to be a string.');
+        }
+
+        return {
+          isSet: true,
+          value: val
+        };
+      },
+      'params': (val) => {
+        if (val === null) {
+          return {isSet: false};
+        }
+
+        if (typeof val !== 'object') {
+          throw new TypeError('Layer params has to be an object.');
+        }
+
+        return {
+          isSet: true,
+          value: Object.keys(val)
+                 .map((key) => [key, val[key]]
+                               .map((x) => encodeURIComponent(x))
+                               .join('=')
+                     )
+                 .join('&')
+        };
+      },
+      //@see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
+//       'server-type'
+    });
   }
 
-  /**
-   * Keys are attribute names.
-   * Values are functions that compare two attribute values and return whether they are considered identical.
-   * @property {Object.<* -> {a: *, b: * -> boolean}>}
-   * @readonly
-   */
-  static get attributeComparators() {
-    return _.merge({}, super.attributeComparators, attributeValueComparators);
+  static get propertyComparators() {
+    return _.merge({}, super.propertyComparators, {
+//       'url': 'url',
+//       'params': 'params',
+//       'server-type': 'serverType',
+    });
   }
 
   static get observedAttributes() {
@@ -89,7 +104,7 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
       // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
       'params',
       // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-      'server-type'
+      'server-type',
     ]);
   }
 
@@ -120,10 +135,15 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('url'));
   }
   set url(val) {
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('url'), val);
+    if (!typeCheck('String | Null', val)) {
+      throw new TypeError('Tiled WMS layer url has to be a string.');
+    }
 
     // Update internal models.
     this.olSource_.setUrl(val);
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('url'), val);
   }
 
   // @property {Object} params
@@ -131,16 +151,21 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('params'));
   }
   set params(val) {
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('params'), val);
+    if (!typeCheck('Object | Null', val)) {
+      throw new TypeError('Tiled WMS layer params has to be an object.');
+    }
 
     // Update internal models.
     this.olSource_.updateParams(val);
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('params'), val);
   }
 
   /**
    * Customized public/private methods.
    */
 
-};
+}
 
 customElements.define('map-layer-twms', HTMLMapLayerTWMS);

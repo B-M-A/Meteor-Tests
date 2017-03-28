@@ -6,6 +6,7 @@
  *   - error and revert attribute to the old value
  * - else
  *   - update property (with property setter, throw if error)
+ *     - fill default values
  *     - verify new property
  *     - update internal models
  *     - silent update attribute with new property
@@ -81,12 +82,12 @@ export default class BaseClass extends HTMLElement {
   }
 
   /**
-   * Keys are attribute names.
-   * Values are functions that compare two attribute values and return whether they are considered identical.
-   * @property {Object.<* -> {a: *, b: * -> boolean}>}
+   * Keys are property names.
+   * Values are functions that compare two property values and return whether they are considered identical.
+   * @property {Object.<a: *, b: * -> boolean>}
    * @readonly
    */
-  static get attributeComparators() {
+  static get propertyComparators() {
     // Child classes should implement this.
     return {};
   }
@@ -172,15 +173,13 @@ export default class BaseClass extends HTMLElement {
       this.setUpdateFlag_(attrName);
 
       const propName = this.constructor.getPropertyNameByAttributeName_(attrName),
-            eventName = `changed:${propName}`;
+            eventName = `changed:${propName}`,
+            oldPropVal = this[propName],
+            newPropVal = this.getPropertyValueFromAttribute_(attrName, newVal !== null, newVal);
 
-      if (this.isIdenticalAttributeValue_(attrName, oldVal, newVal)) {
+      if (this.isIdenticalPropertyValue_(propName, oldPropVal, newPropVal)) {
         this.log_(eventName, 'no change');
       } else {
-        // Attribute-to-property conversion function should verify attribute value and throw if needed.
-        const newPropVal = this.getPropertyValueFromAttribute_(attrName, newVal !== null, newVal);
-        const oldPropVal = this[propName];
-
         // Setter should verify new property value and throw if needed.
         this[propName] = newPropVal;
 
@@ -257,8 +256,8 @@ export default class BaseClass extends HTMLElement {
    * string, *, * -> boolean
    * @private
    */
-  isIdenticalAttributeValue_(attrName, val1, val2) {
-    const comparator = this.constructor.attributeComparators[attrName];
+  isIdenticalPropertyValue_(attrName, val1, val2) {
+    const comparator = this.constructor.propertyComparators[attrName];
     return comparator ? comparator(val1, val2) : false;
   }
 
@@ -325,4 +324,4 @@ export default class BaseClass extends HTMLElement {
     return this.changingAttributes_[attrName] === true;
   }
 
-};
+}

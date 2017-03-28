@@ -1,6 +1,6 @@
 import ol from './libs/ol-v4.0.1-dist.js';
 
-export const defaultCenterString = '0, 0';
+export const defaultCenter = [0, 0];
 
 /**
  * Returns a new view instance for the provided projection if possible.

@@ -7,7 +7,12 @@ import ol from './libs/ol-v4.0.1-dist.js';
 const layerGenerators = {
   // Use an empty layer group to pretend it's an invisible layer.
   'none': () => (new ol.layer.Group()),
-  'osm': () => (new ol.layer.Tile({source: new ol.source.OSM()}))
+  'osm': () => (new ol.layer.Tile({source: new ol.source.OSM()})),
+  'arcgis': () => (new ol.layer.Tile({
+    source: new ol.source.XYZ({
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'
+    })
+  })),
 };
 
 /**

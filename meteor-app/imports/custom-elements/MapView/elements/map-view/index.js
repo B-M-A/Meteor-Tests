@@ -1,77 +1,147 @@
-import ol from '../../libs/ol-v4.0.1-dist.js';
+import _ from 'lodash';
+import {
+  typeCheck
+} from 'type-check';
+
+import BaseClass from '../base';
 
 import HTMLMapLayerBase from '../map-layer-base';
 
 import {
-  observedAttributes,
-  attrToProp,
-  propToAttr,
-  attributeChangedCallback
-} from './attributes';
-import { getView } from '../../view.js';
-import { html as shadowRootHTML } from '../../template';
-import { getBaseMap } from '../../basemap';
-import logging from '../../logging';
+  defaultProjection,
+} from '../../projections';
+import {
+  defaultCenter,
+  getView,
+} from '../../view.js';
+import {
+  html as shadowRootHTML,
+} from '../../template';
+import {
+  defaultMapType,
+  getBaseMap,
+} from '../../basemap';
 
-/*global customElements, HTMLElement*/
-
-const DEBUG = true;
-
-const {
-  log,
-  logInfo,
-  logWarn,
-  logError
-} = logging('map-view', DEBUG);
+/*global customElements, HTMLElement, MutationObserver*/
 
 /**
  * Returns a map of attribute names to their values.
  */
-const getElementAttributes = (element) => {
-  const attrs = {};
-  if (element.hasAttributes()) {
-    for (let i = element.attributes.length - 1; i >= 0; i--) {
-      attrs[element.attributes[i].name] = element.attributes[i].value;
-    }
-  }
-  return attrs;
-};
+// const getElementAttributes = (element) => {
+//   const attrs = {};
+//   if (element.hasAttributes()) {
+//     for (let i = element.attributes.length - 1; i >= 0; i--) {
+//       attrs[element.attributes[i].name] = element.attributes[i].value;
+//     }
+//   }
+//   return attrs;
+// };
 
 /**
  * NodeList -> Array.<Node>
  */
 const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
 
-const self = class HTMLMapView extends HTMLElement {
+export default class HTMLMapView extends BaseClass {
 
-  /**
-   * Lifecycle:
-   * - constructor
-   * - attributeChangedCallback
-   * - connectedCallback
-   * - [attributeChangedCallback]
-   * - [disconnectedCallback]
-   * - [connectedCallback]
-   * - [...]
-   */
+  static get attributeNameToPropertyNameMapping () {
+    return _.merge({}, super.attributeNameToPropertyNameMapping, {
+      'disabled': 'disabled',
+      'basemap': 'basemap',
+      'projection': 'projection',
+      'center': 'center',
+    });
+  }
+
+  static get propertyNameToAttributeNameMapping () {
+    return _.merge({}, super.propertyNameToAttributeNameMapping, {
+      'disabled': 'disabled',
+      'basemap': 'basemap',
+      'projection': 'projection',
+      'center': 'center',
+    });
+  }
+
+  static get attributeToPropertyConverters() {
+    return _.merge({}, super.attributeToPropertyConverters, {
+      'disabled': (isSet, val) => (
+        isSet
+        ? true
+        : false
+      ),
+      'basemap': (isSet, val) => (
+        isSet
+        ? val.trim()
+        : null
+      ),
+      'projection': (isSet, val) => (
+        isSet
+        ? val.trim()
+        : null
+      ),
+      'center': (isSet, val) => (
+        isSet
+        ? val.split(',')
+            .map(v => v.trim())
+            .map(v => parseFloat(v))
+        : null
+      ),
+    });
+  }
+
+  static get propertyToAttributeConverters() {
+    return _.merge({}, super.propertyToAttributeConverters, {
+      // @param {boolean|null} val - Boolean value to set or unset, null to unset.
+      'disabled': (val) => ({
+          isSet: Boolean(val),
+          value: 'disabled',
+      }),
+      'basemap': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val,
+      }),
+      'projection': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val,
+      }),
+      'center': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val.join(', '),
+      }),
+    });
+  }
+
+  static get propertyComparators() {
+    return _.merge({}, super.propertyComparators, {
+//       'disabled': 'disabled',
+//       'basemap': 'basemap',
+//       'projection': 'projection',
+//       'center': 'center',
+    });
+  }
 
   static get observedAttributes() {
-    return observedAttributes;
+    return _.concat(super.observedAttributes, [
+      'disabled',
+      'basemap',
+      'projection',
+      'center',
+      'test', //!
+    ]);
   }
 
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
   constructor() {
-    log('constructor');
-
     super(); // always call super() first in the ctor.
 
     // `this` is the container HTMLElement.
     // It has no attributes or children at construction time.
 
-    // Attach the openlayers library.
-    this.ol = ol;
+    const {
+      ol
+    } = this;
 
     // Attach a shadow root to <fancy-tabs>.
     const shadowRoot = this.attachShadow({mode: 'open'});
@@ -80,9 +150,6 @@ const self = class HTMLMapView extends HTMLElement {
     // Get references to all elements here.
     this.mapElement_ = shadowRoot.querySelector('#map');
     this.layerList_ = shadowRoot.querySelector('#layer-list');
-
-    // Indicate whether this custom element is in DOM or not.
-    this.connected_ = false;
 
     // Some caching stores.
     this.baseMapCache_ = {};
@@ -96,18 +163,27 @@ const self = class HTMLMapView extends HTMLElement {
 
     this.mapInteractions_ = new ol.Collection();
 
+    this.childMapLayerElementCollection_ = new ol.Collection();
     this.childMapLayerCollection_ = new ol.Collection();
 
+    // Sync from element collection to layer collection.
+    this.childMapLayerElementCollection_.on('change', () => {
+      const layers = this.childMapLayerElementCollection_.getArray().map(element => element.layer);
+
+      this.childMapLayerCollection_.clear();
+      this.childMapLayerCollection_.extend(layers);
+    });
+
     this.baseMapLayerCollection_ = new ol.Collection([
-      getBaseMap(this.basemap, this.baseMapCache_)
-    ].filter(Boolean) /* Get rid of any null values that may piss Openlayers */);
+      getBaseMap(defaultMapType, this.baseMapCache_)
+    ]);
 
     // Stores the active ol.View.
-    this.mapView_ = getView(this.projection, this.viewCache_);
+    this.mapView_ = getView(defaultProjection, this.viewCache_);
 
     this.olMap_ = new ol.Map({
-      controls: this.mapControls_,
-      interactions: this.mapInteractions_,
+      //controls: this.mapControls_,
+      //interactions: this.mapInteractions_,
       keyboardEventTarget: this.mapElement_,
       layers: [
         new ol.layer.Group({
@@ -124,6 +200,13 @@ const self = class HTMLMapView extends HTMLElement {
           zIndex: 1,
           layers: this.childMapLayerCollection_
         }),
+        //!
+        new ol.layer.Vector({
+          source: new ol.source.Vector({
+            url: 'https://openlayers.org/en/v4.0.1/examples/data/geojson/countries.geojson',
+            format: new ol.format.GeoJSON()
+          }),
+        })
       ],
       loadTilesWhileAnimating: false,
       loadTilesWhileInteracting: false,
@@ -164,18 +247,23 @@ const self = class HTMLMapView extends HTMLElement {
     this.contentMutationObserver_.observe(this, this.contentMutationObserverConfig_);
     //this.layerListMutationObserver_.disconnect();
 
+
+    //! Test default property values.
+    this.logInfo_({
+      disabled: this.disabled,
+      basemap: this.basemap,
+      projection: this.projection,
+      center: this.center,
+    });
   } // constructor
 
   /**
    * Called every time the element is inserted into the DOM. Useful for running setup code, such as fetching resources or rendering. Generally, you should try to delay work until this time.
    */
   connectedCallback() {
-    log('connected');
+    super.connectedCallback();
 
-    log('this.children', this.children);
     //!log('getElementAttributes', getElementAttributes(this));
-
-    this.connected_ = true;
 
     // Reconnect the view.
     this.mountView_();
@@ -188,80 +276,119 @@ const self = class HTMLMapView extends HTMLElement {
    * Called every time the element is removed from the DOM. Useful for running clean up code (removing event listeners, etc.).
    */
   disconnectedCallback() {
-    log('disconnected');
-
-    this.connected_ = false;
+    super.disconnectedCallback();
 
     // Disconnect the view.
     this.unmountView_();
   }
 
   /**
-   * An attribute was added, removed, updated, or replaced. Also called for initial values when an element is created by the parser, or upgraded. Note: only attributes listed in the observedAttributes property will receive this callback.
-   */
-  attributeChangedCallback(attrName, oldVal, newVal) {
-    log('attributeChanged', {attrName, oldVal, newVal});
-    attributeChangedCallback(this, attrName, oldVal, newVal);
-  }
-
-  /**
-   * The custom element has been moved into a new document (e.g. someone called document.adoptNode(el)).
-   */
-  adoptedCallback() {}
-
-  /**
    * Getters and Setters (for properties).
    */
 
+  // @property {boolean} disabled
   get disabled() {
-    return attrToProp(this, 'disabled');
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('disabled'));
   }
-
   set disabled(val) {
-    // Reflect the value of `disabled` as an attribute.
-    propToAttr(this, 'disabled', val);
+    if (!typeCheck('Boolean | Null', val)) {
+      throw new TypeError('Disabled has to be a boolean value.');
+    }
+
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('disabled'), val);
   }
 
+  // @property {string} basemap
   get basemap() {
-    return attrToProp(this, 'basemap');
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('basemap'));
+    return propValFromAttr === null ? defaultMapType : propValFromAttr;
   }
-
   set basemap(val) {
-    // Reflect the value of `basemap` as an attribute.
-    propToAttr(this, 'basemap', val);
+    if (!typeCheck('String | Null', val)) {
+      throw new TypeError('Map view base map type has to be a string.');
+    }
+
+    if (typeCheck('String', val)) {
+      val = val.trim();
+    }
+
+    // Update internal models.
+    const layer = getBaseMap(val, this.baseMapCache_);
+
+    this.baseMapLayerCollection_.clear();
+    if (layer === null) {
+      throw new TypeError('Invalid base map type.');
+    } else {
+      this.baseMapLayerCollection_.push(layer);
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('basemap'), val);
   }
 
+  // @property {string} projection
   get projection() {
-    return attrToProp(this, 'projection');
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('projection'));
+    return propValFromAttr === null ? defaultProjection : propValFromAttr;
   }
-
   set projection(val) {
-    // Reflect the value of `projection` as an attribute.
-    propToAttr(this, 'projection', val);
+    if (!typeCheck('String | Null', val)) {
+      throw new TypeError('Map projection has to be a string.');
+    }
+
+    if (typeCheck('String', val)) {
+      val = val.trim();
+    }
+
+    // Update internal models.
+
+    // @type {ol.View|null}
+    const newView = getView(val, this.viewCache_);
+
+    if (newView === null) {
+      throw new TypeError('Invalid projection.');
+    } else {
+      const oldProj = this.mapView_.getProjection(),
+            newProj = newView.getProjection(),
+            oldCenter = this.mapView_.getCenter(),
+            newCenter = this.ol.proj.transform(oldCenter, oldProj, newProj);
+
+      // Update layer coordinates.
+      this.childMapLayerElementCollection_.forEach((element) => {
+        const oldExtent = element.extent;
+
+        if (oldExtent !== null) {
+          const newExtent = this.ol.proj.transformExtent(oldExtent, oldProj, newProj);
+          element.extent = newExtent;
+        }
+      });
+
+      this.center = newCenter;
+      this.mapView_ = newView;
+
+      if (this.connected_) {
+        this.mountView_();
+      }
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), val);
   }
 
   get center() {
-    return attrToProp(this, 'center');
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('center'));
+    return propValFromAttr === null ? defaultCenter : propValFromAttr;
   }
-
   set center(val) {
-    // Reflect the value of `center` as an attribute.
-    propToAttr(this, 'center', val);
-  }
-
-  get view() {
-    return this.mapView_;
-  }
-
-  set view(val) {
-    //! Validate view.
-    this.mapView_ = val;
-    this.center = val.getCenter();
-    this.projection = val.getProjection();
-
-    if (this.connected_) {
-      this.mountView_();
+    if (!typeCheck('(Number, Number) | Null', val)) {
+      throw new TypeError('Map view center has to be an array of 2 numbers.');
     }
+
+    // Update internal models.
+    this.mapView_.setCenter(val);
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('center'), val);
   }
 
   //! Property for testing event loop.
@@ -274,19 +401,19 @@ const self = class HTMLMapView extends HTMLElement {
    */
 
   mountView_() {
-    log('mountView_');
+    this.log_('mountView_');
 
     this.mapView_.setCenter(this.center);
     this.olMap_.setView(this.mapView_);
   }
   unmountView_() {
-    log('unmountView_');
+    this.log_('unmountView_');
 
     this.olMap_.setView(null);
   }
 
   updateLayers_() {
-    log('updateLayers_');
+    this.log_('updateLayers_');
 
     const layerElements = [];
 
@@ -303,14 +430,13 @@ const self = class HTMLMapView extends HTMLElement {
       }
     }
 
-    const layers = layerElements.map(element => element.layer);
+    this.childMapLayerElementCollection_.clear();
+    this.childMapLayerElementCollection_.extend(layerElements);
+    this.childMapLayerElementCollection_.changed();
 
-    this.childMapLayerCollection_.clear();
-    this.childMapLayerCollection_.extend(layers);
-  }
+    this.log_(`${layerElements.length} layer(s) loaded.`);
+  } // updateLayers_
 
-};
+} // HTMLMapView
 
-customElements.define('map-view', self);
-
-export default self;
+customElements.define('map-view', HTMLMapView);
