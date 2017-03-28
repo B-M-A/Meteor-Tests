@@ -413,6 +413,10 @@ export default class HTMLMapView extends BaseClass {
   setView_(newView) {
     const oldView = this.mapView_;
 
+    // These listener bindings should not be moved to a 'change:view' handler,
+    // since the 'change:view' happens when the view is mounted, while these bindings
+    // should happen as soon as possible to avoid side-effects.
+
     if (oldView) {
       // Detach listeners.
       oldView.un('change:center', this.boundViewChangeCenterHandler_);
