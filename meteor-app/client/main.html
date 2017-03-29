@@ -46,13 +46,22 @@
 
         <div role="some-random-grouping">
           <map-layer-twms
-            name="example-twms-2"
+            name="example-twms-topp:states"
             extent="-13884991, 2870341, -7455066, 6338219"
             url="https://ahocevar.com/geoserver/wms"
             params="LAYERS=topp%3Astates&TILED=true"
             server-type="geoserver"
           ></map-layer-twms>
         </div>
+
+        <map-layer-twms
+          name="example-twms-cigi:usdemtiles"
+          extent="-13915047.668649992, 2753286.2554852893, -7346975.072865263, 6446449.025202513"
+          url="http://gisolve-portal.ncsa.illinois.edu/geoserver/cigi/wms"
+          params="LAYERS=cigi%3Ausdemtiles&TILED=true"
+          server-type="geoserver"
+        ></map-layer-twms>
+
 
         <map-layer name="some-layer" type="TileWMS" opacity="1" extent="-13884991, 2870341, -7455066, 6338219" options='{
           "url": "https://ahocevar.com/geoserver/wms",
