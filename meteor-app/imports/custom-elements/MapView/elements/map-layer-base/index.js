@@ -9,6 +9,17 @@ const defaultOpacity = 1;
 
 export default class HTMLMapLayerBase extends BaseClass {
 
+  static get observedAttributes() {
+    return _.concat(super.observedAttributes, [
+      // Unique name for the layer.
+      'name',
+      // Opacity of the layer.
+      'opacity',
+      // Extent of the layer.
+      'extent',
+    ]);
+  }
+
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'name': 'name',
@@ -73,17 +84,6 @@ export default class HTMLMapLayerBase extends BaseClass {
       'opacity': (a, b) => a === b,
       'extent': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
     });
-  }
-
-  static get observedAttributes() {
-    return _.concat(super.observedAttributes, [
-      // Unique name for the layer.
-      'name',
-      // Opacity of the layer.
-      'opacity',
-      // Extent of the layer.
-      'extent',
-    ]);
   }
 
   /**

@@ -9,6 +9,18 @@ import HTMLMapLayerBase from '../map-layer-base';
 
 export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
+  static get observedAttributes() {
+    return _.concat(super.observedAttributes, [
+      // Url of the layer source.
+      'url',
+      // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping)
+      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
+      'params',
+      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
+      'server-type',
+    ]);
+  }
+
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'url': 'url',
@@ -94,18 +106,6 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 //       'params': 'params',
 //       'server-type': 'serverType',
     });
-  }
-
-  static get observedAttributes() {
-    return _.concat(super.observedAttributes, [
-      // Url of the layer source.
-      'url',
-      // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping)
-      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-      'params',
-      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-      'server-type',
-    ]);
   }
 
   /**

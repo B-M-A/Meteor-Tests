@@ -37,6 +37,11 @@ export default class BaseClass extends HTMLElement {
    * - [...]
    */
 
+  static get observedAttributes() {
+    // Child classes should implement this.
+    return [];
+  }
+
   /**
    * Keys are attribute names.
    * Values are property names.
@@ -90,11 +95,6 @@ export default class BaseClass extends HTMLElement {
   static get propertyComparators() {
     // Child classes should implement this.
     return {};
-  }
-
-  static get observedAttributes() {
-    // Child classes should implement this.
-    return [];
   }
 
   /**
