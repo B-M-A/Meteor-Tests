@@ -5,8 +5,6 @@ import {
 
 import HTMLMapLayerBase from '../map-layer-base';
 
-/*global customElements*/
-
 export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
   static get observedAttributes() {
@@ -167,5 +165,3 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
    */
 
 }
-
-customElements.define('map-layer-twms', HTMLMapLayerTWMS);

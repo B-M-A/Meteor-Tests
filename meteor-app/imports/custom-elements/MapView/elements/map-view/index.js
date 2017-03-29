@@ -22,7 +22,7 @@ import {
   getBaseMap,
 } from '../../basemap';
 
-/*global customElements, HTMLElement, MutationObserver*/
+/*global HTMLElement, MutationObserver*/
 
 /**
  * Returns a map of attribute names to their values.
@@ -472,5 +472,3 @@ export default class HTMLMapView extends BaseClass {
   } // updateLayers_
 
 } // HTMLMapView
-
-customElements.define('map-view', HTMLMapView);
