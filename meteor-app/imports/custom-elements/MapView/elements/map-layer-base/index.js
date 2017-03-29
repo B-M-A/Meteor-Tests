@@ -9,6 +9,7 @@ const defaultOpacity = 1;
 
 export default class HTMLMapLayerBase extends BaseClass {
 
+  // @override
   static get observedAttributes() {
     return _.concat(super.observedAttributes, [
       // Unique name for the layer.
@@ -20,6 +21,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     ]);
   }
 
+  // @override
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'name': 'name',
@@ -28,6 +30,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     });
   }
 
+  // @override
   static get propertyNameToAttributeNameMapping () {
     return _.merge({}, super.propertyNameToAttributeNameMapping, {
       'name': 'name',
@@ -36,6 +39,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     });
   }
 
+  // @override
   static get attributeToPropertyConverters() {
     return _.merge({}, super.attributeToPropertyConverters, {
       'name': (isSet, val) => (
@@ -58,6 +62,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     });
   }
 
+  // @override
   static get propertyToAttributeConverters() {
     return _.merge({}, super.propertyToAttributeConverters, {
       // @param {string|null} val - String value to be set, null to unset.
@@ -78,12 +83,33 @@ export default class HTMLMapLayerBase extends BaseClass {
     });
   }
 
+  // @override
   static get propertyComparators() {
     return _.merge({}, super.propertyComparators, {
       'name': (a, b) => a === b,
       'opacity': (a, b) => a === b,
       'extent': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
     });
+  }
+
+  /**
+   * Returns the class that should be used for the layer instance.
+   * @property {ol.layer.Base}
+   * @readonly
+   */
+  static get layerClass() {
+    // Child classes should override this.
+    return this.ol.layer.Base;
+  }
+
+  /**
+   * Returns the class that should be used for the layer source instance.
+   * @property {ol.source.Source}
+   * @readonly
+   */
+  static get layerSourceClass() {
+    // Child classes should override this.
+    return this.ol.source.Source;
   }
 
   /**
@@ -95,8 +121,11 @@ export default class HTMLMapLayerBase extends BaseClass {
     // `this` is the container HTMLElement.
     // It has no attributes or children at construction time.
 
+    // Used in constructor of ol.source.Source.
+    this.olSourceOptions_ = {};
+
     // @type {ol.layer.Base}
-    this.olLayer_ = null;
+    this.olLayer_ = new this.constructor.layerClass({});
   }
 
   /**
@@ -109,7 +138,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     return this.olLayer_;
   }
 
-  // @property {string} name
+  // @property {string|null} name
   get name() {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('name'));
   }
@@ -134,7 +163,8 @@ export default class HTMLMapLayerBase extends BaseClass {
 
   // @property {number} opacity
   get opacity() {
-    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('opacity'));
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('opacity'));
+    return propValFromAttr === null ? defaultOpacity : propValFromAttr;
   }
   set opacity(val) {
     if (!typeCheck('Number | Null', val)) {
@@ -157,7 +187,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('opacity'), val);
   }
 
-  // @property {Array.<number>} extent
+  // @property {Array.<number>|null} extent
   get extent() {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('extent'));
   }
@@ -178,6 +208,22 @@ export default class HTMLMapLayerBase extends BaseClass {
   /**
    * Customized public/private methods.
    */
+
+  /**
+   * Use the options set in `this.olSourceOptions_` to create a new layer source and use that in the layer.
+   * Since this creates a new source thus loosing all the cached data in the old one, don't use this for minor changes.
+   * @param {Object} options
+   */
+  updateSource(options) {
+    if (this.olLayer_ === null) {
+      throw new TypeError('Should not call updateSource before initializing the layer.');
+    }
+
+    this.olSourceOptions_ = _.merge(this.olSourceOptions_, options);
+
+    const newSource = new this.constructor.layerSourceClass(this.olSourceOptions_);
+    this.olLayer_.setSource(newSource);
+  }
 
 }
 

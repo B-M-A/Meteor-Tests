@@ -5,18 +5,28 @@ import {
 
 import HTMLMapLayerBase from '../map-layer-base';
 
-export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
+/*global customElements*/
+
+const defaultMinZoom = 0;
+const defaultMaxZoom = 18;
+
+export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
 
   // @override
   static get observedAttributes() {
     return _.concat(super.observedAttributes, [
-      // Url of the layer source.
+      // Url template of the layer source.
+      // Required.
+      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.XYZ.html}
       'url',
-      // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping)
-      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-      'params',
-      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-      'server-type',
+      // Minimum zoom level.
+      // Optional.
+      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.XYZ.html}
+      'min-zoom',
+      // Maximum zoom level.
+      // Optional.
+      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.XYZ.html}
+      'max-zoom',
     ]);
   }
 
@@ -24,8 +34,8 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'url': 'url',
-      'params': 'params',
-      'server-type': 'serverType',
+      'min-zoom': 'minZoom',
+      'max-zoom': 'maxZoom',
     });
   }
 
@@ -33,8 +43,8 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   static get propertyNameToAttributeNameMapping () {
     return _.merge({}, super.propertyNameToAttributeNameMapping, {
       'url': 'url',
-      'params': 'params',
-      'serverType': 'server-type',
+      'minZoom': 'min-zoom',
+      'maxZoom': 'max-zoom',
     });
   }
 
@@ -46,16 +56,14 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
         ? val
         : null
       ),
-      'params': (isSet, val) => (
+      'min-zoom': (isSet, val) => (
         isSet
-        ? val.split('&')
-             .map((pairStr) => pairStr.split('=').map((x) => decodeURIComponent(x)))
-             .reduce((acc, [key, value]) => ({...acc, [key]: value}), {})
-        : {}
+        ? parseFloat(val)
+        : null
       ),
-      'server-type': (isSet, val) => (
+      'max-zoom': (isSet, val) => (
         isSet
-        ? val
+        ? parseFloat(val)
         : null
       ),
     });
@@ -79,27 +87,16 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
           value: val
         };
       },
-      'params': (val) => {
-        if (val === null) {
-          return {isSet: false};
-        }
-
-        if (typeof val !== 'object') {
-          throw new TypeError('Layer params has to be an object.');
-        }
-
-        return {
-          isSet: true,
-          value: Object.keys(val)
-                 .map((key) => [key, val[key]]
-                               .map((x) => encodeURIComponent(x))
-                               .join('=')
-                     )
-                 .join('&')
-        };
-      },
-      //@see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
-//       'server-type'
+      // @param {number|null} val - Number value to be set, null to unset.
+      'min-zoom': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : String(val),
+      }),
+      // @param {number|null} val - Number value to be set, null to unset.
+      'max-zoom': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : String(val),
+      }),
     });
   }
 
@@ -107,8 +104,8 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   static get propertyComparators() {
     return _.merge({}, super.propertyComparators, {
       'url': (a, b) => a === b,
-      'params': (a, b) => _.isEqual(a, b),
-      'serverType': (a, b) => a === b,
+      'minZoom': (a, b) => a === b,
+      'maxZoom': (a, b) => a === b,
     });
   }
 
@@ -119,7 +116,7 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
   // @override
   static get layerSourceClass() {
-    return this.ol.source.TileWMS;
+    return this.ol.source.XYZ;
   }
 
   /**
@@ -151,22 +148,50 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('url'), val);
   }
 
-  // @property {Object|null} params
-  get params() {
-    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('params'));
+  // @property {number} minZoom
+  get minZoom() {
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('minZoom'));
+    return propValFromAttr === null ? defaultMinZoom : propValFromAttr;
   }
-  set params(val) {
-    if (!typeCheck('Object | Null', val)) {
-      throw new TypeError('Tiled WMS layer params has to be an object.');
+  set minZoom(val) {
+    if (!typeCheck('Number | Null', val)) {
+      throw new TypeError('Layer minimum zoom has to be a number.');
+    }
+
+    if (val < 0) {
+      throw new RangeError('Layer minimum zoom can not be lower than 0.');
     }
 
     // Update internal models.
     this.updateSource({
-      params: val
+      minZoom: val
     });
 
     // Update attributes.
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('params'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('minZoom'), val);
+  }
+
+  // @property {number} maxZoom
+  get maxZoom() {
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('maxZoom'));
+    return propValFromAttr === null ? defaultMaxZoom : propValFromAttr;
+  }
+  set maxZoom(val) {
+    if (!typeCheck('Number | Null', val)) {
+      throw new TypeError('Layer maximum zoom has to be a number.');
+    }
+
+    if (val < 0) {
+      throw new RangeError('Layer maximum zoom can not be lower than 0.');
+    }
+
+    // Update internal models.
+    this.updateSource({
+      maxZoom: val
+    });
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('maxZoom'), val);
   }
 
   /**

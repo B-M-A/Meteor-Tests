@@ -113,6 +113,11 @@ export default class BaseClass extends HTMLElement {
     return this.propertyNameToAttributeNameMapping[propName] || propName;
   }
 
+  // Attach the openlayers library.
+  static get ol() {
+    return ol;
+  }
+
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */

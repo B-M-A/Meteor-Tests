@@ -44,12 +44,23 @@ const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
 
 export default class HTMLMapView extends BaseClass {
 
+  static get observedAttributes() {
+    return _.concat(super.observedAttributes, [
+      'disabled',
+      'basemap',
+      'projection',
+      'center',
+      'zoom',
+    ]);
+  }
+
   static get attributeNameToPropertyNameMapping () {
     return _.merge({}, super.attributeNameToPropertyNameMapping, {
       'disabled': 'disabled',
       'basemap': 'basemap',
       'projection': 'projection',
       'center': 'center',
+      'zoom': 'zoom',
     });
   }
 
@@ -59,6 +70,7 @@ export default class HTMLMapView extends BaseClass {
       'basemap': 'basemap',
       'projection': 'projection',
       'center': 'center',
+      'zoom': 'zoom',
     });
   }
 
@@ -86,6 +98,11 @@ export default class HTMLMapView extends BaseClass {
             .map(v => parseFloat(v))
         : null
       ),
+      'zoom': (isSet, val) => (
+        isSet
+        ? parseFloat(val)
+        : null
+      ),
     });
   }
 
@@ -108,6 +125,11 @@ export default class HTMLMapView extends BaseClass {
         isSet: !(val === null),
         value: (val === null) ? '' : val.join(', '),
       }),
+      // @param {number|null} val - Number value to be set, null to unset.
+      'zoom': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : String(val),
+      }),
     });
   }
 
@@ -117,17 +139,8 @@ export default class HTMLMapView extends BaseClass {
       'basemap': (a, b) => a === b,
       'projection': (a, b) => a === b,
       'center': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
+      'zoom': (a, b) => a === b,
     });
-  }
-
-  static get observedAttributes() {
-    return _.concat(super.observedAttributes, [
-      'disabled',
-      'basemap',
-      'projection',
-      'center',
-      'test', //!
-    ]);
   }
 
   /**
@@ -149,6 +162,7 @@ export default class HTMLMapView extends BaseClass {
 
     // Define bound/debounced/callback functions before the rest stuff.
     this.boundViewChangeCenterHandler_ = _.debounce(this.viewChangeCenterHandler_.bind(this), 30);
+    this.boundViewChangeResolutionHanlder_ = _.debounce(this.viewChangeResolutionHanlder_.bind(this), 30);
 
     // Get references to all elements here.
     this.mapElement_ = shadowRoot.querySelector('#map');
@@ -206,13 +220,6 @@ export default class HTMLMapView extends BaseClass {
           zIndex: 1,
           layers: this.childMapLayerCollection_
         }),
-        //!
-        new ol.layer.Vector({
-          source: new ol.source.Vector({
-            url: 'https://openlayers.org/en/v4.0.1/examples/data/geojson/countries.geojson',
-            format: new ol.format.GeoJSON()
-          }),
-        })
       ],
       loadTilesWhileAnimating: false,
       loadTilesWhileInteracting: false,
@@ -267,8 +274,6 @@ export default class HTMLMapView extends BaseClass {
    */
   connectedCallback() {
     super.connectedCallback();
-
-    //!log('getElementAttributes', getElementAttributes(this));
 
     // Reconnect the view.
     this.mountView_();
@@ -401,9 +406,23 @@ export default class HTMLMapView extends BaseClass {
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('center'), val);
   }
 
-  //! Property for testing event loop.
-  set test(val) {
+  get zoom() {
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('zoom'));
+    return propValFromAttr === null ? this.mapView_.getZoom() : propValFromAttr;
+  }
+  set zoom(val) {
+    if (!typeCheck('Number | Null', val)) {
+      throw new TypeError('Map view zoom has to be a number.');
+    }
 
+    // Update internal models.
+    const oldVal = this.mapView_.getZoom();
+    if (!this.isIdenticalPropertyValue_('zoom', oldVal, val)) {
+      this.mapView_.setZoom(val);
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('zoom'), val);
   }
 
   /**
@@ -420,18 +439,24 @@ export default class HTMLMapView extends BaseClass {
     if (oldView) {
       // Detach listeners.
       oldView.un('change:center', this.boundViewChangeCenterHandler_);
+      oldView.un('change:resolution', this.boundViewChangeResolutionHanlder_);
     }
 
     if (newView) {
       // Attach listeners.
       newView.on('change:center', this.boundViewChangeCenterHandler_);
+      newView.on('change:resolution', this.boundViewChangeResolutionHanlder_);
     }
 
     this.mapView_ = newView;
   }
 
-  viewChangeCenterHandler_({ type, key, oldValue, target }) {
+  viewChangeCenterHandler_({ /*type, key, oldValue,*/ target }) {
     this.center = target.getCenter();
+  }
+
+  viewChangeResolutionHanlder_({ /*type, key, oldValue,*/ target }) {
+    this.zoom = target.getZoom();
   }
 
   mountView_() {

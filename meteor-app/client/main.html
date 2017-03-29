@@ -54,24 +54,33 @@
           ></map-layer-twms>
         </div>
 
-        <map-layer-twms
-          name="example-twms-cigi:usdemtiles"
-          extent="-13915047.668649992, 2753286.2554852893, -7346975.072865263, 6446449.025202513"
-          url="http://gisolve-portal.ncsa.illinois.edu/geoserver/cigi/wms"
-          params="LAYERS=cigi%3Ausdemtiles&TILED=true"
-          server-type="geoserver"
-        ></map-layer-twms>
-
-
-        <map-layer name="some-layer" type="TileWMS" opacity="1" extent="-13884991, 2870341, -7455066, 6338219" options='{
-          "url": "https://ahocevar.com/geoserver/wms",
-          "params": {"LAYERS": "topp:states", "TILED": true},
-          "serverType": "geoserver"
-        }'></map-layer>
-        <map-layer name="some-other-layer" type="OSM" opacity="1" extent="0,0,0,0" options="{}"></map-layer>
-
       </map-view>
     </div>
     <div role="container2"></div>
+
+    <map-view role="map" basemap="none" center="-10997148, 4569099">
+      <map-layer-xyz
+        name="example-xyz-World_Topo_Map"
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+      ></map-layer-xyz>
+      <map-layer-twms
+        name="example-twms-cigi:usdemtiles"
+        extent="-13915047.668649992, 2753286.2554852893, -7346975.072865263, 6446449.025202513"
+        url="http://gisolve-portal.ncsa.illinois.edu/geoserver/cigi/wms"
+        params="LAYERS=cigi%3Ausdemtiles&TILED=true"
+        server-type="geoserver"
+      ></map-layer-twms>
+    </map-view>
+
+    <map-view basemap="osm" center="-10770282.90004959, 3407867.6662916047" zoom="8">
+      <map-layer-xyz
+        name="example-xyz-HAND_Raster_HUC_121001"
+        extent="-10836498.285311159, 3324147.2418698706, -10704555.576447897, 3493502.2047468633"
+        url="http://cybergis-jupyter.tk/121001p-tms/{z}/{x}/{-y}.png"
+        min-zoom="9"
+        max-zoom="13"
+      ></map-layer-xyz>
+    </map-view>
+
   </div>
 </template>
