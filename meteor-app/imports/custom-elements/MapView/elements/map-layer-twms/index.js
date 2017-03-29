@@ -100,9 +100,9 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
   static get propertyComparators() {
     return _.merge({}, super.propertyComparators, {
-//       'url': 'url',
-//       'params': 'params',
-//       'server-type': 'serverType',
+      'url': (a, b) => a === b,
+      'params': (a, b) => _.isEqual(a, b),
+      'serverType': (a, b) => a === b,
     });
   }
 
