@@ -18,6 +18,8 @@ export default class HTMLMapLayerBase extends BaseClass {
       'opacity',
       // Extent of the layer.
       'extent',
+      // Visibility of the layer.
+      'invisible',
     ]);
   }
 
@@ -27,6 +29,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'name': 'name',
       'opacity': 'opacity',
       'extent': 'extent',
+      'invisible': 'invisible',
     });
   }
 
@@ -36,6 +39,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'name': 'name',
       'opacity': 'opacity',
       'extent': 'extent',
+      'invisible': 'invisible',
     });
   }
 
@@ -59,6 +63,11 @@ export default class HTMLMapLayerBase extends BaseClass {
             .map(v => parseFloat(v))
         : null
       ),
+      'invisible': (isSet, val) => (
+        isSet
+        ? true
+        : false
+      ),
     });
   }
 
@@ -80,6 +89,11 @@ export default class HTMLMapLayerBase extends BaseClass {
         isSet: !(val === null),
         value: (val === null) ? '' : val.join(', '),
       }),
+      // @param {boolean|null} val - Boolean value to set or unset, null to unset.
+      'invisible': (val) => ({
+          isSet: Boolean(val),
+          value: 'invisible',
+      }),
     });
   }
 
@@ -89,6 +103,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'name': (a, b) => a === b,
       'opacity': (a, b) => a === b,
       'extent': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
+      'invisible': (a, b) => a === b,
     });
   }
 
@@ -202,7 +217,27 @@ export default class HTMLMapLayerBase extends BaseClass {
       this.olLayer_.setExtent(val);
     }
 
+    // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('extent'), val);
+  }
+
+  // @property {boolean} invisible
+  get invisible() {
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('invisible'));
+  }
+  set invisible(val) {
+    if (!typeCheck('Boolean | Null', val)) {
+      throw new TypeError('Invisible has to be a boolean value.');
+    }
+
+    // Update internal models.
+    const oldVal = !this.olLayer_.getVisible();
+    if (!this.isIdenticalPropertyValue_('invisible', oldVal, val)) {
+      this.olLayer_.setVisible(!val);
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('invisible'), val);
   }
 
   /**
