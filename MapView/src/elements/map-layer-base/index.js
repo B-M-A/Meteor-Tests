@@ -323,9 +323,3 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
 }
-
-HTMLMapLayerBase.propertyComparators = _.merge({}, HTMLMapLayerBase.prototype.constructor.propertyComparators, {
-  'name': (a, b) => a === b,
-  'opacity': (a, b) => a === b,
-//   'extent': 'extent',
-});
