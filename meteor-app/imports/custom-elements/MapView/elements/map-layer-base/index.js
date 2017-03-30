@@ -20,6 +20,10 @@ export default class HTMLMapLayerBase extends BaseClass {
       'extent',
       // Visibility of the layer.
       'invisible',
+      // The minimum resolution (inclusive) at which this layer will be visible.
+      'min-resolution',
+      // The maximum resolution (exclusive) below which this layer will be visible.
+      'max-resolution',
     ]);
   }
 
@@ -30,6 +34,8 @@ export default class HTMLMapLayerBase extends BaseClass {
       'opacity': 'opacity',
       'extent': 'extent',
       'invisible': 'invisible',
+      'min-resolution': 'minResolution',
+      'max-resolution': 'maxResolution',
     });
   }
 
@@ -40,6 +46,8 @@ export default class HTMLMapLayerBase extends BaseClass {
       'opacity': 'opacity',
       'extent': 'extent',
       'invisible': 'invisible',
+      'minResolution': 'min-resolution',
+      'maxResolution': 'max-resolution',
     });
   }
 
@@ -68,6 +76,16 @@ export default class HTMLMapLayerBase extends BaseClass {
         ? true
         : false
       ),
+      'min-resolution': (isSet, val) => (
+        isSet
+        ? parseFloat(val)
+        : null
+      ),
+      'max-resolution': (isSet, val) => (
+        isSet
+        ? parseFloat(val)
+        : null
+      ),
     });
   }
 
@@ -94,6 +112,16 @@ export default class HTMLMapLayerBase extends BaseClass {
           isSet: Boolean(val),
           value: 'invisible',
       }),
+      // @param {number|null} val - Number value to be set, null to unset.
+      'min-resolution': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : String(val),
+      }),
+      // @param {number|null} val - Number value to be set, null to unset.
+      'max-resolution': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : String(val),
+      }),
     });
   }
 
@@ -104,6 +132,8 @@ export default class HTMLMapLayerBase extends BaseClass {
       'opacity': (a, b) => a === b,
       'extent': (a, b) => a !== null && b !== null && a.length === b.length && a.every((x, i) => x === b[i]),
       'invisible': (a, b) => a === b,
+      'min-resolution': (a, b) => a === b,
+      'max-resolution': (a, b) => a === b,
     });
   }
 
@@ -238,6 +268,44 @@ export default class HTMLMapLayerBase extends BaseClass {
 
     // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('invisible'), val);
+  }
+
+  // @property {number} minResolution
+  get minResolution() {
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('minResolution'));
+  }
+  set minResolution(val) {
+    if (!typeCheck('Number | Null', val)) {
+      throw new TypeError('Layer minimum resolution has to be a number.');
+    }
+
+    // Update internal models.
+    const oldVal = this.olLayer_.getMinResolution();
+    if (!this.isIdenticalPropertyValue_('minResolution', oldVal, val)) {
+      this.olLayer_.setMinResolution(val);
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('minResolution'), val);
+  }
+
+  // @property {number} maxResolution
+  get maxResolution() {
+    return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('maxResolution'));
+  }
+  set maxResolution(val) {
+    if (!typeCheck('Number | Null', val)) {
+      throw new TypeError('Layer maximum resolution has to be a number.');
+    }
+
+    // Update internal models.
+    const oldVal = this.olLayer_.getMaxResolution();
+    if (!this.isIdenticalPropertyValue_('maxResolution', oldVal, val)) {
+      this.olLayer_.setMaxResolution(val);
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('maxResolution'), val);
   }
 
   /**
