@@ -1,4 +1,4 @@
-import ol from '../../libs/ol-v4.0.1-dist.js';
+import ol from '../../third-party/ol-v4.0.1-dist.js';
 
 export const defaultCenter = [0, 0];
 

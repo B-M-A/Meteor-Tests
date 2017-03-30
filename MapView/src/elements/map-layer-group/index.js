@@ -1,11 +1,6 @@
-import { _ } from 'lodash';
-import {
-  typeCheck
-} from 'type-check';
-
 import HTMLMapLayerBase from '../map-layer-base';
 
-/*global HTMLElement, MutationObserver*/
+/*global MutationObserver*/
 
 /**
  * NodeList -> Array.<Node>
@@ -15,7 +10,7 @@ const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
 export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
 
   // @override
-  static get layerClass() {
+  static get layerClass () {
     return this.ol.layer.Group;
   }
 
@@ -25,12 +20,12 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
    * @param {HTMLElement} element
    * @returns {collection: ol.Collection.<HTMLMapLayerBase>, observer: MutationObserver, onLayerListChanged: function(Array.<ol.layer.Base>, ol.Collection.<HTMLMapLayerBase>)}
    */
-  static setupChildLayerElementsObserver(element) {
+  static setupChildLayerElementsObserver (element) {
     const collection = new this.ol.Collection();
     const observer = new MutationObserver(this.updateChildLayerElements_.bind(this, element, collection));
     const onLayerListChanged = (func) => {
-      collection.on('change', ({ /*type,*/ target }) => {
-        const layers = target.getArray().map(element => element.layer);
+      collection.on('change', ({/*type, */target}) => {
+        const layers = target.getArray().map((el) => el.layer);
         func(layers, collection);
       });
     };
@@ -55,9 +50,9 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
    * @param {HTMLElement} element
    * @param {ol.Collection} collection
    */
-  static updateChildLayerElements_(element, collection) {
+  static updateChildLayerElements_ (element, collection) {
     // Only scan one level. The elements in this level should handle their own children.
-    const layerElements = getArrayFromNodeList(element.children).filter(node => node instanceof HTMLMapLayerBase);
+    const layerElements = getArrayFromNodeList(element.children).filter((node) => node instanceof HTMLMapLayerBase);
 
     collection.clear();
     collection.extend(layerElements);
@@ -69,7 +64,7 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
-  constructor() {
+  constructor () {
     super(); // always call super() first in the ctor.
 
     const {
@@ -95,7 +90,7 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
    */
 
   // @override
-  updateSource() {
+  updateSource () {
     throw new Error('Can not update source of a layer group.');
   }
 

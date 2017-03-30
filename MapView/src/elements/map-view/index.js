@@ -5,7 +5,6 @@ import {
 
 import BaseClass from '../base';
 
-import HTMLMapLayerBase from '../map-layer-base';
 import HTMLMapLayerGroup from '../map-layer-group';
 
 import {
@@ -16,32 +15,12 @@ import {
   getBaseMap,
 } from './basemap';
 
-/*global HTMLElement, MutationObserver*/
-
-/**
- * Returns a map of attribute names to their values.
- */
-// const getElementAttributes = (element) => {
-//   const attrs = {};
-//   if (element.hasAttributes()) {
-//     for (let i = element.attributes.length - 1; i >= 0; i--) {
-//       attrs[element.attributes[i].name] = element.attributes[i].value;
-//     }
-//   }
-//   return attrs;
-// };
-
 const defaultProjection = 'EPSG:3857';
 const defaultCenter = [0, 0];
 
-/**
- * NodeList -> Array.<Node>
- */
-const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
-
 export default class HTMLMapView extends BaseClass {
 
-  static get observedAttributes() {
+  static get observedAttributes () {
     return _.concat(super.observedAttributes, [
       'disabled',
       'basemap',
@@ -71,13 +50,9 @@ export default class HTMLMapView extends BaseClass {
     });
   }
 
-  static get attributeToPropertyConverters() {
+  static get attributeToPropertyConverters () {
     return _.merge({}, super.attributeToPropertyConverters, {
-      'disabled': (isSet, val) => (
-        isSet
-        ? true
-        : false
-      ),
+      'disabled': (isSet/*, val*/) => isSet,
       'basemap': (isSet, val) => (
         isSet
         ? val.trim()
@@ -91,8 +66,8 @@ export default class HTMLMapView extends BaseClass {
       'center': (isSet, val) => (
         isSet
         ? val.split(',')
-            .map(v => v.trim())
-            .map(v => parseFloat(v))
+            .map((v) => v.trim())
+            .map((v) => parseFloat(v))
         : null
       ),
       'zoom': (isSet, val) => (
@@ -103,12 +78,12 @@ export default class HTMLMapView extends BaseClass {
     });
   }
 
-  static get propertyToAttributeConverters() {
+  static get propertyToAttributeConverters () {
     return _.merge({}, super.propertyToAttributeConverters, {
       // @param {boolean|null} val - Boolean value to set or unset, null to unset.
       'disabled': (val) => ({
-          isSet: Boolean(val),
-          value: 'disabled',
+        isSet: Boolean(val),
+        value: 'disabled',
       }),
       'basemap': (val) => ({
         isSet: !(val === null),
@@ -130,7 +105,7 @@ export default class HTMLMapView extends BaseClass {
     });
   }
 
-  static get propertyComparators() {
+  static get propertyComparators () {
     return _.merge({}, super.propertyComparators, {
       'disabled': (a, b) => a === b,
       'basemap': (a, b) => a === b,
@@ -143,7 +118,7 @@ export default class HTMLMapView extends BaseClass {
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
-  constructor() {
+  constructor () {
     super(); // always call super() first in the ctor.
 
     // `this` is the container HTMLElement.
@@ -251,13 +226,14 @@ export default class HTMLMapView extends BaseClass {
       basemap: this.basemap,
       projection: this.projection,
       center: this.center,
+      children: this.children,
     });
   } // constructor
 
   /**
    * Called every time the element is inserted into the DOM. Useful for running setup code, such as fetching resources or rendering. Generally, you should try to delay work until this time.
    */
-  connectedCallback() {
+  connectedCallback () {
     super.connectedCallback();
 
     // Reconnect the view.
@@ -270,7 +246,7 @@ export default class HTMLMapView extends BaseClass {
   /**
    * Called every time the element is removed from the DOM. Useful for running clean up code (removing event listeners, etc.).
    */
-  disconnectedCallback() {
+  disconnectedCallback () {
     super.disconnectedCallback();
 
     // Disconnect the view.
@@ -282,10 +258,10 @@ export default class HTMLMapView extends BaseClass {
    */
 
   // @property {boolean} disabled
-  get disabled() {
+  get disabled () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('disabled'));
   }
-  set disabled(val) {
+  set disabled (val) {
     if (!typeCheck('Boolean | Null', val)) {
       throw new TypeError('Disabled has to be a boolean value.');
     }
@@ -294,21 +270,19 @@ export default class HTMLMapView extends BaseClass {
   }
 
   // @property {string} basemap
-  get basemap() {
+  get basemap () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('basemap'));
     return propValFromAttr === null ? defaultMapType : propValFromAttr;
   }
-  set basemap(val) {
+  set basemap (val) {
     if (!typeCheck('String | Null', val)) {
       throw new TypeError('Map view base map type has to be a string.');
     }
 
-    if (typeCheck('String', val)) {
-      val = val.trim();
-    }
+    const _val = typeCheck('String', val) ? val.trim() : val;
 
     // Update internal models.
-    const layer = getBaseMap(val, this.baseMapCache_);
+    const layer = getBaseMap(_val, this.baseMapCache_);
 
     this.baseMapLayerCollection_.clear();
     if (layer === null) {
@@ -318,44 +292,42 @@ export default class HTMLMapView extends BaseClass {
     }
 
     // Update attributes.
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('basemap'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('basemap'), _val);
   }
 
   // @property {string} projection
-  get projection() {
+  get projection () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('projection'));
     return propValFromAttr === null ? defaultProjection : propValFromAttr;
   }
-  set projection(val) {
+  set projection (val) {
     if (!typeCheck('String | Null', val)) {
       throw new TypeError('Map projection has to be a string.');
     }
 
-    if (typeCheck('String', val)) {
-      val = val.trim();
-    }
+    const _val = typeCheck('String', val) ? val.trim() : val;
 
-    if (!this.ol.proj.get(val)) {
+    if (!this.ol.proj.get(_val)) {
       throw new TypeError('Invalid projection.');
     }
 
     // Update internal models.
     const oldVal = this.mapView_.getProjection().getCode();
-    if (!this.isIdenticalPropertyValue_('projection', oldVal, val)) {
+    if (!this.isIdenticalPropertyValue_('projection', oldVal, _val)) {
       this.updateView_({
-        projection: val
+        projection: _val
       });
     }
 
     // Update attributes.
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), _val);
   }
 
-  get center() {
+  get center () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('center'));
     return propValFromAttr === null ? defaultCenter : propValFromAttr;
   }
-  set center(val) {
+  set center (val) {
     if (!typeCheck('(Number, Number) | Null', val)) {
       throw new TypeError('Map view center has to be an array of 2 numbers.');
     }
@@ -370,11 +342,11 @@ export default class HTMLMapView extends BaseClass {
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('center'), val);
   }
 
-  get zoom() {
+  get zoom () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('zoom'));
     return propValFromAttr === null ? this.mapView_.getZoom() : propValFromAttr;
   }
-  set zoom(val) {
+  set zoom (val) {
     if (!typeCheck('Number | Null', val)) {
       throw new TypeError('Map view zoom has to be a number.');
     }
@@ -397,7 +369,7 @@ export default class HTMLMapView extends BaseClass {
    * Update the map view with the given options.
    * @param {Object} options
    */
-  updateView_(options) {
+  updateView_ (options) {
     //! Worry about caching later.
 
     const finalOptions = this.olViewOptions_ = _.merge(this.olViewOptions_, !this.mapView_ ? null : {
@@ -415,7 +387,7 @@ export default class HTMLMapView extends BaseClass {
     }
   }
 
-  setView_(newView) {
+  setView_ (newView) {
     const oldView = this.mapView_;
 
     // These listener bindings should not be moved to a 'change:view' handler,
@@ -437,21 +409,21 @@ export default class HTMLMapView extends BaseClass {
     this.mapView_ = newView;
   }
 
-  viewChangeCenterHandler_({ /*type, key, oldValue,*/ target }) {
+  viewChangeCenterHandler_ ({/*type, key, oldValue, */target}) {
     this.center = target.getCenter();
   }
 
-  viewChangeResolutionHanlder_({ /*type, key, oldValue,*/ target }) {
+  viewChangeResolutionHanlder_ ({/*type, key, oldValue, */target}) {
     this.zoom = target.getZoom();
   }
 
-  mountView_() {
+  mountView_ () {
     this.log_('mountView_');
 
     this.mapView_.setCenter(this.center);
     this.olMap_.setView(this.mapView_);
   }
-  unmountView_() {
+  unmountView_ () {
     this.log_('unmountView_');
 
     this.olMap_.setView(null);

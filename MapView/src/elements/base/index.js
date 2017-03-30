@@ -22,7 +22,7 @@
 
 /*global HTMLElement, CustomEvent*/
 
-import ol from '../../libs/ol-v4.0.1-dist.js';
+import ol from '../../third-party/ol-v4.0.1-dist.js';
 
 export default class BaseClass extends HTMLElement {
 
@@ -31,13 +31,14 @@ export default class BaseClass extends HTMLElement {
    * - constructor
    * - attributeChangedCallback
    * - connectedCallback
+   * - (instantiate children)
    * - [attributeChangedCallback]
    * - [disconnectedCallback]
    * - [connectedCallback]
    * - [...]
    */
 
-  static get observedAttributes() {
+  static get observedAttributes () {
     // Child classes should implement this.
     return [];
   }
@@ -70,7 +71,7 @@ export default class BaseClass extends HTMLElement {
    * @property {Object.<isSet: boolean, val: string -> *>}
    * @readonly
    */
-  static get attributeToPropertyConverters() {
+  static get attributeToPropertyConverters () {
     // Child classes should implement this.
     return {};
   }
@@ -81,7 +82,7 @@ export default class BaseClass extends HTMLElement {
    * @property {Object.<* -> {isSet: boolean, value: string}>}
    * @readonly
    */
-  static get propertyToAttributeConverters() {
+  static get propertyToAttributeConverters () {
     // Child classes should implement this.
     return {};
   }
@@ -92,7 +93,7 @@ export default class BaseClass extends HTMLElement {
    * @property {Object.<a: *, b: * -> boolean>}
    * @readonly
    */
-  static get propertyComparators() {
+  static get propertyComparators () {
     // Child classes should implement this.
     return {};
   }
@@ -101,7 +102,7 @@ export default class BaseClass extends HTMLElement {
    * string -> string
    * @private
    */
-  static getPropertyNameByAttributeName_(attrName) {
+  static getPropertyNameByAttributeName_ (attrName) {
     return this.attributeNameToPropertyNameMapping[attrName] || attrName;
   }
 
@@ -109,19 +110,19 @@ export default class BaseClass extends HTMLElement {
    * string -> string
    * @private
    */
-  static getAttributeNameByPropertyName_(propName) {
+  static getAttributeNameByPropertyName_ (propName) {
     return this.propertyNameToAttributeNameMapping[propName] || propName;
   }
 
   // Attach the openlayers library.
-  static get ol() {
+  static get ol () {
     return ol;
   }
 
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
-  constructor() {
+  constructor () {
     super(); // always call super() first in the ctor.
 
     // `this` is the container HTMLElement.
@@ -143,7 +144,7 @@ export default class BaseClass extends HTMLElement {
   /**
    * Called every time the element is inserted into the DOM. Useful for running setup code, such as fetching resources or rendering. Generally, you should try to delay work until this time.
    */
-  connectedCallback() {
+  connectedCallback () {
     this.log_('connected');
     this.connected_ = true;
   }
@@ -151,7 +152,7 @@ export default class BaseClass extends HTMLElement {
   /**
    * Called every time the element is removed from the DOM. Useful for running clean up code (removing event listeners, etc.).
    */
-  disconnectedCallback() {
+  disconnectedCallback () {
     this.log_('disconnected');
     this.connected_ = false;
   }
@@ -159,7 +160,7 @@ export default class BaseClass extends HTMLElement {
   /**
    * An attribute was added, removed, updated, or replaced. Also called for initial values when an element is created by the parser, or upgraded. Note: only attributes listed in the observedAttributes property will receive this callback.
    */
-  attributeChangedCallback(attrName, oldVal, newVal) {
+  attributeChangedCallback (attrName, oldVal, newVal) {
     // Only care about the attributes in the observed list.
     if (this.constructor.observedAttributes.indexOf(attrName) === -1) {
       return;
@@ -170,7 +171,11 @@ export default class BaseClass extends HTMLElement {
       return;
     }
 
-    this.log_('attributeChangedCallback', {attrName, oldVal, newVal});
+    this.log_('attributeChangedCallback', {
+      attrName,
+      oldVal,
+      newVal
+    });
 
     let cancelled = false;
 
@@ -184,12 +189,18 @@ export default class BaseClass extends HTMLElement {
             newPropVal = this.getPropertyValueFromAttribute_(attrName, newVal !== null, newVal);
 
       if (this.isIdenticalPropertyValue_(propName, oldPropVal, newPropVal)) {
-        this.log_(eventName, 'no change', {oldPropVal, newPropVal});
+        this.log_(eventName, 'no change', {
+          oldPropVal,
+          newPropVal
+        });
       } else {
         // Setter should verify new property value and throw if needed.
         this[propName] = newPropVal;
 
-        this.log_(eventName, {oldVal: oldPropVal, newVal: newPropVal});
+        this.log_(eventName, {
+          oldVal: oldPropVal,
+          newVal: newPropVal
+        });
 
         // Dispatch change event.
         const event = new CustomEvent(eventName, {
@@ -206,7 +217,11 @@ export default class BaseClass extends HTMLElement {
         cancelled = !this.dispatchEvent(event);
       }
     } catch (error) {
-      this.logError_(`Failed to handle attribute change. ${error.message}`, {attrName, oldVal, newVal});
+      this.logError_(`Failed to handle attribute change. ${error.message}`, {
+        attrName,
+        oldVal,
+        newVal
+      });
 
       //! Handle the error better?
       cancelled = true;
@@ -223,7 +238,11 @@ export default class BaseClass extends HTMLElement {
             this.setAttribute(attrName, oldVal);
           }
         } else {
-          this.logWarn_('No acceptable value to revert to.', {attrName, oldVal, newVal});
+          this.logWarn_('No acceptable value to revert to.', {
+            attrName,
+            oldVal,
+            newVal
+          });
         }
       } else {
         // No error and not cancelled.
@@ -235,7 +254,9 @@ export default class BaseClass extends HTMLElement {
   /**
    * The custom element has been moved into a new document (e.g. someone called document.adoptNode(el)).
    */
-  adoptedCallback() {}
+  adoptedCallback () {
+    //! Not sure what to do.
+  }
 
   /**
    * Getters and Setters (for properties).
@@ -245,24 +266,24 @@ export default class BaseClass extends HTMLElement {
    * Customized public/private methods.
    */
 
-  log_(...args) {
-    console.log(this.constructor.name, ...args);
+  log_ (...args) {
+    console.log(`${this.constructor.name}_${this.id}`, ...args);
   }
-  logInfo_(...args) {
-    console.info(this.constructor.name, ...args);
+  logInfo_ (...args) {
+    console.info(`${this.constructor.name}_${this.id}`, ...args);
   }
-  logWarn_(...args) {
-    console.warn(this.constructor.name, ...args);
+  logWarn_ (...args) {
+    console.warn(`${this.constructor.name}_${this.id}`, ...args);
   }
-  logError_(...args) {
-    console.error(this.constructor.name, ...args);
+  logError_ (...args) {
+    console.error(`${this.constructor.name}_${this.id}`, ...args);
   }
 
   /**
    * string, *, * -> boolean
    * @private
    */
-  isIdenticalPropertyValue_(propName, val1, val2) {
+  isIdenticalPropertyValue_ (propName, val1, val2) {
     const comparator = this.constructor.propertyComparators[propName];
     return comparator ? comparator(val1, val2) : false;
   }
@@ -275,17 +296,17 @@ export default class BaseClass extends HTMLElement {
    * @returns {*}
    */
   //!attrToProp_
-  getPropertyValueFromAttribute_(attrName, hasAttr, attrVal) {
-    if (typeof hasAttr === 'undefined') {
-      hasAttr = this.hasAttribute(attrName);
-    }
-    if (typeof attrVal === 'undefined') {
-      attrVal = this.getAttribute(attrName);
-    }
+  getPropertyValueFromAttribute_ (attrName, hasAttr, attrVal) {
+    const _hasAttr = !(typeof hasAttr === 'undefined') ? hasAttr : this.hasAttribute(attrName);
+    const _attrVal = !(typeof attrVal === 'undefined') ? attrVal : this.getAttribute(attrName);
 
     const converter = this.constructor.attributeToPropertyConverters[attrName];
 
-    return converter ? converter(hasAttr, attrVal) : (hasAttr ? attrVal : null);
+    if (converter) {
+      return converter(_hasAttr, _attrVal);
+    } else {
+      return _hasAttr ? _attrVal : null;
+    }
   }
 
   /**
@@ -295,7 +316,7 @@ export default class BaseClass extends HTMLElement {
    * @returns {string}
    */
   //!propToAttr_
-  updateAttributeByProperty_(attrName, propVal) {
+  updateAttributeByProperty_ (attrName, propVal) {
     const converter = this.constructor.propertyToAttributeConverters[attrName];
 
     if (converter) {
@@ -318,15 +339,15 @@ export default class BaseClass extends HTMLElement {
 
   // Helpers for getting/setting/clearing update flags.
   // @private
-  setUpdateFlag_(attrName) {
+  setUpdateFlag_ (attrName) {
     this.changingAttributes_[attrName] = true;
   }
   // @private
-  clearUpdateFlag_(attrName) {
+  clearUpdateFlag_ (attrName) {
     this.changingAttributes_[attrName] = false;
   }
   // @private
-  isUpdating_(attrName) {
+  isUpdating_ (attrName) {
     return this.changingAttributes_[attrName] === true;
   }
 

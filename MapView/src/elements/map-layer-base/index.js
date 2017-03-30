@@ -10,7 +10,7 @@ export const defaultOpacity = 1;
 export default class HTMLMapLayerBase extends BaseClass {
 
   // @override
-  static get observedAttributes() {
+  static get observedAttributes () {
     return _.concat(super.observedAttributes, [
       // Unique name for the layer.
       'name',
@@ -52,7 +52,7 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @override
-  static get attributeToPropertyConverters() {
+  static get attributeToPropertyConverters () {
     return _.merge({}, super.attributeToPropertyConverters, {
       'name': (isSet, val) => (
         isSet
@@ -67,15 +67,11 @@ export default class HTMLMapLayerBase extends BaseClass {
       'extent': (isSet, val) => (
         isSet
         ? val.split(',')
-            .map(v => v.trim())
-            .map(v => parseFloat(v))
+            .map((v) => v.trim())
+            .map((v) => parseFloat(v))
         : null
       ),
-      'invisible': (isSet, val) => (
-        isSet
-        ? true
-        : false
-      ),
+      'invisible': (isSet/*, val*/) => isSet,
       'min-resolution': (isSet, val) => (
         isSet
         ? parseFloat(val)
@@ -90,7 +86,7 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @override
-  static get propertyToAttributeConverters() {
+  static get propertyToAttributeConverters () {
     return _.merge({}, super.propertyToAttributeConverters, {
       // @param {string|null} val - String value to be set, null to unset.
       'name': (val) => ({
@@ -109,8 +105,8 @@ export default class HTMLMapLayerBase extends BaseClass {
       }),
       // @param {boolean|null} val - Boolean value to set or unset, null to unset.
       'invisible': (val) => ({
-          isSet: Boolean(val),
-          value: 'invisible',
+        isSet: Boolean(val),
+        value: 'invisible',
       }),
       // @param {number|null} val - Number value to be set, null to unset.
       'min-resolution': (val) => ({
@@ -126,7 +122,7 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @override
-  static get propertyComparators() {
+  static get propertyComparators () {
     return _.merge({}, super.propertyComparators, {
       'name': (a, b) => a === b,
       'opacity': (a, b) => a === b,
@@ -142,7 +138,7 @@ export default class HTMLMapLayerBase extends BaseClass {
    * @property {ol.layer.Base}
    * @readonly
    */
-  static get layerClass() {
+  static get layerClass () {
     // Child classes should override this.
     return this.ol.layer.Base;
   }
@@ -152,7 +148,7 @@ export default class HTMLMapLayerBase extends BaseClass {
    * @property {ol.source.Source}
    * @readonly
    */
-  static get layerSourceClass() {
+  static get layerSourceClass () {
     // Child classes should override this.
     return this.ol.source.Source;
   }
@@ -160,7 +156,7 @@ export default class HTMLMapLayerBase extends BaseClass {
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
-  constructor() {
+  constructor () {
     super(); // always call super() first in the ctor.
 
     // `this` is the container HTMLElement.
@@ -179,39 +175,37 @@ export default class HTMLMapLayerBase extends BaseClass {
 
   // @property {ol.layer.Base} layer
   // @readonly
-  get layer() {
+  get layer () {
     return this.olLayer_;
   }
 
   // @property {string|null} name
-  get name() {
+  get name () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('name'));
   }
-  set name(val) {
+  set name (val) {
     if (!typeCheck('String | Null', val)) {
       throw new TypeError('Layer name has to be a string.');
     }
 
-    if (typeCheck('String', val)) {
-      val = val.trim();
-    }
+    const _val = typeCheck('String', val) ? val.trim() : val;
 
     // Update internal models.
     const oldVal = this.olLayer_.get('name');
-    if (!this.isIdenticalPropertyValue_('name', oldVal, val)) {
-      this.olLayer_.set('name', val);
+    if (!this.isIdenticalPropertyValue_('name', oldVal, _val)) {
+      this.olLayer_.set('name', _val);
     }
 
     // Update attributes.
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('name'), val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('name'), _val);
   }
 
   // @property {number} opacity
-  get opacity() {
+  get opacity () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('opacity'));
     return propValFromAttr === null ? defaultOpacity : propValFromAttr;
   }
-  set opacity(val) {
+  set opacity (val) {
     if (!typeCheck('Number | Null', val)) {
       throw new TypeError('Layer opacity has to be a number.');
     }
@@ -233,10 +227,10 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @property {Array.<number>|null} extent
-  get extent() {
+  get extent () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('extent'));
   }
-  set extent(val) {
+  set extent (val) {
     if (!typeCheck('(Number, Number, Number, Number) | Null', val)) {
       throw new TypeError('Layer extent has to be an array of 4 numbers.');
     }
@@ -252,10 +246,10 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @property {boolean} invisible
-  get invisible() {
+  get invisible () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('invisible'));
   }
-  set invisible(val) {
+  set invisible (val) {
     if (!typeCheck('Boolean | Null', val)) {
       throw new TypeError('Invisible has to be a boolean value.');
     }
@@ -271,10 +265,10 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @property {number} minResolution
-  get minResolution() {
+  get minResolution () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('minResolution'));
   }
-  set minResolution(val) {
+  set minResolution (val) {
     if (!typeCheck('Number | Null', val)) {
       throw new TypeError('Layer minimum resolution has to be a number.');
     }
@@ -290,10 +284,10 @@ export default class HTMLMapLayerBase extends BaseClass {
   }
 
   // @property {number} maxResolution
-  get maxResolution() {
+  get maxResolution () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('maxResolution'));
   }
-  set maxResolution(val) {
+  set maxResolution (val) {
     if (!typeCheck('Number | Null', val)) {
       throw new TypeError('Layer maximum resolution has to be a number.');
     }
@@ -317,7 +311,7 @@ export default class HTMLMapLayerBase extends BaseClass {
    * Since this creates a new source thus loosing all the cached data in the old one, don't use this for minor changes.
    * @param {Object} options
    */
-  updateSource(options) {
+  updateSource (options) {
     if (this.olLayer_ === null) {
       throw new TypeError('Should not call updateSource before initializing the layer.');
     }

@@ -1,4 +1,4 @@
-import { _ } from 'lodash';
+import _ from 'lodash';
 import {
   typeCheck
 } from 'type-check';
@@ -8,7 +8,7 @@ import HTMLMapLayerBase from '../map-layer-base';
 export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
   // @override
-  static get observedAttributes() {
+  static get observedAttributes () {
     return _.concat(super.observedAttributes, [
       // Url of the layer source.
       'url',
@@ -39,7 +39,7 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   }
 
   // @override
-  static get attributeToPropertyConverters() {
+  static get attributeToPropertyConverters () {
     return _.merge({}, super.attributeToPropertyConverters, {
       'url': (isSet, val) => (
         isSet
@@ -50,7 +50,10 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
         isSet
         ? val.split('&')
              .map((pairStr) => pairStr.split('=').map((x) => decodeURIComponent(x)))
-             .reduce((acc, [key, value]) => ({...acc, [key]: value}), {})
+             .reduce((acc, [key, value]) => ({
+               ...acc,
+               [key]: value
+             }), {})
         : {}
       ),
       'server-type': (isSet, val) => (
@@ -62,7 +65,7 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   }
 
   // @override
-  static get propertyToAttributeConverters() {
+  static get propertyToAttributeConverters () {
     return _.merge({}, super.propertyToAttributeConverters, {
       'url': (val) => {
         // Null is allowed for clearing the url.
@@ -104,7 +107,7 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   }
 
   // @override
-  static get propertyComparators() {
+  static get propertyComparators () {
     return _.merge({}, super.propertyComparators, {
       'url': (a, b) => a === b,
       'params': (a, b) => _.isEqual(a, b),
@@ -113,19 +116,19 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   }
 
   // @override
-  static get layerClass() {
+  static get layerClass () {
     return this.ol.layer.Tile;
   }
 
   // @override
-  static get layerSourceClass() {
+  static get layerSourceClass () {
     return this.ol.source.TileWMS;
   }
 
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
-  constructor() {
+  constructor () {
     super(); // always call super() first in the ctor.
   } // constructor
 
@@ -134,10 +137,10 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
    */
 
   // @property {string|null} url
-  get url() {
+  get url () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('url'));
   }
-  set url(val) {
+  set url (val) {
     if (!typeCheck('String | Null', val)) {
       throw new TypeError('Tiled WMS layer url has to be a string.');
     }
@@ -152,10 +155,10 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   }
 
   // @property {Object|null} params
-  get params() {
+  get params () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('params'));
   }
-  set params(val) {
+  set params (val) {
     if (!typeCheck('Object | Null', val)) {
       throw new TypeError('Tiled WMS layer params has to be an object.');
     }

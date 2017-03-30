@@ -1,11 +1,9 @@
-import { _ } from 'lodash';
+import _ from 'lodash';
 import {
   typeCheck
 } from 'type-check';
 
 import HTMLMapLayerBase from '../map-layer-base';
-
-/*global customElements*/
 
 const defaultMinZoom = 0;
 const defaultMaxZoom = 18;
@@ -13,7 +11,7 @@ const defaultMaxZoom = 18;
 export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
 
   // @override
-  static get observedAttributes() {
+  static get observedAttributes () {
     return _.concat(super.observedAttributes, [
       // Url template of the layer source.
       // Required.
@@ -49,7 +47,7 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   }
 
   // @override
-  static get attributeToPropertyConverters() {
+  static get attributeToPropertyConverters () {
     return _.merge({}, super.attributeToPropertyConverters, {
       'url': (isSet, val) => (
         isSet
@@ -70,7 +68,7 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   }
 
   // @override
-  static get propertyToAttributeConverters() {
+  static get propertyToAttributeConverters () {
     return _.merge({}, super.propertyToAttributeConverters, {
       'url': (val) => {
         // Null is allowed for clearing the url.
@@ -101,7 +99,7 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   }
 
   // @override
-  static get propertyComparators() {
+  static get propertyComparators () {
     return _.merge({}, super.propertyComparators, {
       'url': (a, b) => a === b,
       'minZoom': (a, b) => a === b,
@@ -110,19 +108,19 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   }
 
   // @override
-  static get layerClass() {
+  static get layerClass () {
     return this.ol.layer.Tile;
   }
 
   // @override
-  static get layerSourceClass() {
+  static get layerSourceClass () {
     return this.ol.source.XYZ;
   }
 
   /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
-  constructor() {
+  constructor () {
     super(); // always call super() first in the ctor.
   } // constructor
 
@@ -131,10 +129,10 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
    */
 
   // @property {string|null} url
-  get url() {
+  get url () {
     return this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('url'));
   }
-  set url(val) {
+  set url (val) {
     if (!typeCheck('String | Null', val)) {
       throw new TypeError('Tiled WMS layer url has to be a string.');
     }
@@ -149,11 +147,11 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   }
 
   // @property {number} minZoom
-  get minZoom() {
+  get minZoom () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('minZoom'));
     return propValFromAttr === null ? defaultMinZoom : propValFromAttr;
   }
-  set minZoom(val) {
+  set minZoom (val) {
     if (!typeCheck('Number | Null', val)) {
       throw new TypeError('Layer minimum zoom has to be a number.');
     }
@@ -172,11 +170,11 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   }
 
   // @property {number} maxZoom
-  get maxZoom() {
+  get maxZoom () {
     const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('maxZoom'));
     return propValFromAttr === null ? defaultMaxZoom : propValFromAttr;
   }
-  set maxZoom(val) {
+  set maxZoom (val) {
     if (!typeCheck('Number | Null', val)) {
       throw new TypeError('Layer maximum zoom has to be a number.');
     }
