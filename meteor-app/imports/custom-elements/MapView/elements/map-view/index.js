@@ -6,21 +6,22 @@ import {
 import BaseClass from '../base';
 
 import HTMLMapLayerBase from '../map-layer-base';
+import HTMLMapLayerGroup from '../map-layer-group';
 
 import {
   defaultProjection,
-} from '../../projections';
+} from './projections';
 import {
   defaultCenter,
   getView,
-} from '../../view.js';
+} from './view';
 import {
   html as shadowRootHTML,
-} from '../../template';
+} from './template';
 import {
   defaultMapType,
   getBaseMap,
-} from '../../basemap';
+} from './basemap';
 
 /*global HTMLElement, MutationObserver*/
 
@@ -180,15 +181,22 @@ export default class HTMLMapView extends BaseClass {
 
     this.mapInteractions_ = new ol.Collection();
 
-    this.childMapLayerElementCollection_ = new ol.Collection();
+    // @type {ol.Collection.<ol.layer.Base>}
     this.childMapLayerCollection_ = new ol.Collection();
 
-    // Sync from element collection to layer collection.
-    this.childMapLayerElementCollection_.on('change', () => {
-      const layers = this.childMapLayerElementCollection_.getArray().map(element => element.layer);
+    const {
+      collection: childLayerElementsCollection,
+      onLayerListChanged
+    } = HTMLMapLayerGroup.setupChildLayerElementsObserver(this);
 
-      this.childMapLayerCollection_.clear();
-      this.childMapLayerCollection_.extend(layers);
+    // @type {ol.Collection.<HTMLMapLayerBase>}
+    this.childLayerElementsCollection_ = childLayerElementsCollection;
+
+    // Sync from element collection to layer collection.
+    onLayerListChanged((layers) => {
+      const layerCollection = this.childMapLayerCollection_;
+      layerCollection.clear();
+      layerCollection.extend(layers);
     });
 
     this.baseMapLayerCollection_ = new ol.Collection([
@@ -202,8 +210,8 @@ export default class HTMLMapView extends BaseClass {
     this.setView_(defaultView);
 
     this.olMap_ = new ol.Map({
-      //controls: this.mapControls_,
-      //interactions: this.mapInteractions_,
+      controls: this.mapControls_,
+      interactions: this.mapInteractions_,
       keyboardEventTarget: this.mapElement_,
       layers: [
         new ol.layer.Group({
@@ -229,36 +237,6 @@ export default class HTMLMapView extends BaseClass {
       target: this.mapElement_,
       view: null
     });
-
-    this.contentMutationObserver_ = new MutationObserver((mutations) => {
-      let addedElements = [],
-          removedElements = [];
-
-      mutations.forEach((mutation) => {
-        const {
-          addedNodes,
-          removedNodes,
-        } = mutation;
-
-        addedElements = addedElements.concat(getArrayFromNodeList(addedNodes).filter(node => node instanceof HTMLElement));
-        removedElements = removedElements.concat(getArrayFromNodeList(removedNodes).filter(node => node instanceof HTMLElement));
-      });
-
-      console.info('mutation', {addedElements, removedElements});
-
-      // Scan sub-level for layers.
-      this.updateLayers_();
-    });
-
-    this.contentMutationObserverConfig_ = {
-      attributes: true,
-      childList: true,
-      characterData: false,
-      subtree: true
-    };
-
-    this.contentMutationObserver_.observe(this, this.contentMutationObserverConfig_);
-    //this.layerListMutationObserver_.disconnect();
 
     //! Test default property values.
     this.logInfo_({
@@ -365,7 +343,7 @@ export default class HTMLMapView extends BaseClass {
               newCenter = this.ol.proj.transform(oldCenter, oldProj, newProj);
 
         // Update layer coordinates.
-        this.childMapLayerElementCollection_.forEach((element) => {
+        this.childLayerElementsCollection_.forEach((element) => {
           const oldExtent = element.extent;
 
           if (oldExtent !== null) {
@@ -470,30 +448,5 @@ export default class HTMLMapView extends BaseClass {
 
     this.olMap_.setView(null);
   }
-
-  updateLayers_() {
-    this.log_('updateLayers_');
-
-    const layerElements = [];
-
-    // DFS all the layer elements.
-    let dfsStack = [this];
-    while (dfsStack.length > 0) {
-      const thisElement = dfsStack.pop();
-
-      if (thisElement instanceof HTMLMapLayerBase) {
-        layerElements.push(thisElement);
-      } else {
-        const childElements = getArrayFromNodeList(thisElement.children).filter(node => node instanceof HTMLElement);
-        dfsStack = dfsStack.concat(childElements.reverse());
-      }
-    }
-
-    this.childMapLayerElementCollection_.clear();
-    this.childMapLayerElementCollection_.extend(layerElements);
-    this.childMapLayerElementCollection_.changed();
-
-    this.log_(`${layerElements.length} layer(s) loaded.`);
-  } // updateLayers_
 
 } // HTMLMapView

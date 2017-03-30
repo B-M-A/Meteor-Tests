@@ -44,7 +44,7 @@
     <div role="container1">
       <map-view role="map" basemap="osm" center="-10997148, 4569099">
 
-        <div role="some-random-grouping">
+        <map-layer-group>
           <map-layer-twms
             name="example-twms-topp:states"
             extent="-13884991, 2870341, -7455066, 6338219"
@@ -52,7 +52,7 @@
             params="LAYERS=topp%3Astates&TILED=true"
             server-type="geoserver"
           ></map-layer-twms>
-        </div>
+        </map-layer-group>
 
       </map-view>
     </div>

@@ -1,4 +1,4 @@
-import ol from './libs/ol-v4.0.1-dist.js';
+import ol from '../../libs/ol-v4.0.1-dist.js';
 
 /**
  * A map from types to functions that generate layers.
