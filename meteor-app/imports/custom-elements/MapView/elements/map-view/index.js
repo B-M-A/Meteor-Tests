@@ -9,13 +9,6 @@ import HTMLMapLayerBase from '../map-layer-base';
 import HTMLMapLayerGroup from '../map-layer-group';
 
 import {
-  defaultProjection,
-} from './projections';
-import {
-  defaultCenter,
-  getView,
-} from './view';
-import {
   html as shadowRootHTML,
 } from './template';
 import {
@@ -37,6 +30,9 @@ import {
 //   }
 //   return attrs;
 // };
+
+const defaultProjection = 'EPSG:3857';
+const defaultCenter = [0, 0];
 
 /**
  * NodeList -> Array.<Node>
@@ -171,7 +167,7 @@ export default class HTMLMapView extends BaseClass {
 
     // Some caching stores.
     this.baseMapCache_ = {};
-    this.viewCache_ = {};
+    this.viewCache_ = {}; //! Not used at the moment.
 
     // Controls are tied to the map view.
     this.mapControls_ = new ol.Collection();
@@ -203,15 +199,26 @@ export default class HTMLMapView extends BaseClass {
       getBaseMap(defaultMapType, this.baseMapCache_)
     ]);
 
+    // Options for instantiating the view.
+    this.olViewOptions_ = {
+      center: defaultCenter,
+      constrainRotation: true,
+      enableRotation: true,
+      maxZoom: 28,
+      minZoom: 0,
+      projection: defaultProjection,
+      rotation: 0,
+      zoom: 3,
+      zoomFactor: 2,
+    };
+
     // Stores the active ol.View.
     this.mapView_ = null;
-
-    const defaultView = getView(defaultProjection, this.viewCache_);
-    this.setView_(defaultView);
+    this.updateView_();
 
     this.olMap_ = new ol.Map({
-      controls: this.mapControls_,
-      interactions: this.mapInteractions_,
+//       controls: this.mapControls_,
+//       interactions: this.mapInteractions_,
       keyboardEventTarget: this.mapElement_,
       layers: [
         new ol.layer.Group({
@@ -328,37 +335,16 @@ export default class HTMLMapView extends BaseClass {
       val = val.trim();
     }
 
+    if (!this.ol.proj.get(val)) {
+      throw new TypeError('Invalid projection.');
+    }
+
     // Update internal models.
     const oldVal = this.mapView_.getProjection().getCode();
     if (!this.isIdenticalPropertyValue_('projection', oldVal, val)) {
-      // @type {ol.View|null}
-      const newView = getView(val, this.viewCache_);
-
-      if (newView === null) {
-        throw new TypeError('Invalid projection.');
-      } else {
-        const oldProj = this.mapView_.getProjection(),
-              newProj = newView.getProjection(),
-              oldCenter = this.mapView_.getCenter(),
-              newCenter = this.ol.proj.transform(oldCenter, oldProj, newProj);
-
-        // Update layer coordinates.
-        this.childLayerElementsCollection_.forEach((element) => {
-          const oldExtent = element.extent;
-
-          if (oldExtent !== null) {
-            const newExtent = this.ol.proj.transformExtent(oldExtent, oldProj, newProj);
-            element.extent = newExtent;
-          }
-        });
-
-        this.center = newCenter;
-        this.setView_(newView);
-
-        if (this.connected_) {
-          this.mountView_();
-        }
-      }
+      this.updateView_({
+        projection: val
+      });
     }
 
     // Update attributes.
@@ -406,6 +392,28 @@ export default class HTMLMapView extends BaseClass {
   /**
    * Customized public/private methods.
    */
+
+  /**
+   * Update the map view with the given options.
+   * @param {Object} options
+   */
+  updateView_(options) {
+    //! Worry about caching later.
+
+    const finalOptions = this.olViewOptions_ = _.merge(this.olViewOptions_, !this.mapView_ ? null : {
+      center: this.mapView_.getCenter(),
+      projection: this.mapView_.getProjection().getCode(),
+      rotation: this.mapView_.getRotation(),
+      zoom: this.mapView_.getZoom(),
+    }, options);
+
+    const newView = new this.ol.View(finalOptions);
+    this.setView_(newView);
+
+    if (this.connected_) {
+      this.mountView_();
+    }
+  }
 
   setView_(newView) {
     const oldView = this.mapView_;

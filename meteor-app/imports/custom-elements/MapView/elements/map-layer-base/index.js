@@ -5,7 +5,7 @@ import {
 
 import BaseClass from '../base';
 
-const defaultOpacity = 1;
+export const defaultOpacity = 1;
 
 export default class HTMLMapLayerBase extends BaseClass {
 
