@@ -1,6 +1,6 @@
 import HTMLMapLayerBase from '../map-layer-base';
 
-/*global MutationObserver*/
+/*global HTMLElement, MutationObserver*/
 
 /**
  * NodeList -> Array.<Node>
@@ -31,9 +31,6 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
             });
           };
 
-    // Do an update first.
-    updateFunction();
-
     // Start observing.
     observer.observe(element, {
       attributes: false,
@@ -41,6 +38,11 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
       characterData: false,
       subtree: false
     });
+
+    // If there is already children in the element, we need another pass of updating.
+    if (element.children.length > 0) {
+      setTimeout(updateFunction, 0);
+    }
 
     return {
       collection,
@@ -56,9 +58,24 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
    * @param {ol.Collection} collection
    */
   static updateChildLayerElements_ (element, collection) {
-    // Only scan one level. The elements in this level should handle their own children.
-    const layerElements = getArrayFromNodeList(element.children).filter((node) => node instanceof HTMLMapLayerBase);
+    const childElements = getArrayFromNodeList(element.children).filter((node) => node instanceof HTMLElement);
 
+    // Do nothing when the element has no child elements.
+    if (childElements.length === 0) {
+      return;
+    }
+
+    // Only scan one level. The elements in this level should handle their own children.
+    const layerElements = childElements.filter((node) => node instanceof HTMLMapLayerBase);
+
+    // Do nothing if the new elements are identical to the existing ones.
+    const oldLayerElements = collection.getArray(),
+          equalToOldData = layerElements.length === oldLayerElements.length && layerElements.every((el, index) => el === oldLayerElements[index]);
+    if (equalToOldData) {
+      return;
+    }
+
+    // Update collection.
     collection.clear();
     collection.extend(layerElements);
     collection.changed();
