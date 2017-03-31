@@ -21,15 +21,20 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
    * @returns {collection: ol.Collection.<HTMLMapLayerBase>, observer: MutationObserver, onLayerListChanged: function(Array.<ol.layer.Base>, ol.Collection.<HTMLMapLayerBase>)}
    */
   static setupChildLayerElementsObserver (element) {
-    const collection = new this.ol.Collection();
-    const observer = new MutationObserver(this.updateChildLayerElements_.bind(this, element, collection));
-    const onLayerListChanged = (func) => {
-      collection.on('change', ({/*type, */target}) => {
-        const layers = target.getArray().map((el) => el.layer);
-        func(layers, collection);
-      });
-    };
+    const collection = new this.ol.Collection(),
+          updateFunction = this.updateChildLayerElements_.bind(this, element, collection),
+          observer = new MutationObserver(updateFunction),
+          onLayerListChanged = (func) => {
+            collection.on('change', ({/*type, */target}) => {
+              const layers = target.getArray().map((el) => el.layer);
+              func(layers, collection);
+            });
+          };
 
+    // Do an update first.
+    updateFunction();
+
+    // Start observing.
     observer.observe(element, {
       attributes: false,
       childList: true,
@@ -58,7 +63,7 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
     collection.extend(layerElements);
     collection.changed();
 
-    element.log_(`${layerElements.length} layer(s) loaded.`);
+    element.log_(`${layerElements.length} layer(s) loaded from ${element.children.length} element(s).`);
   }
 
   /**
