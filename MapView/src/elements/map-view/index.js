@@ -429,4 +429,24 @@ export default class HTMLMapView extends BaseClass {
     this.olMap_.setView(null);
   }
 
+  /**
+   * Set the new projection and also update other related properties (e.g. coordinates).
+   * @param {string} fromProj
+   * @param {string} toProj
+   */
+  switchProjection (fromProj, toProj) {
+    this.log_('switchProjection', {fromProj, toProj});
+
+    const oldCenter = this.center,
+          newCenter = this.ol.proj.transform(oldCenter, fromProj, toProj);
+
+    this.logInfo_({oldCenter, newCenter});
+
+    this.projection = toProj;
+    this.center = newCenter;
+
+    // Tell children to switch projections as well.
+    this.childLayerElementsCollection_.forEach((item) => item.switchProjection(fromProj, toProj));
+  }
+
 } // HTMLMapView

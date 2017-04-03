@@ -116,4 +116,12 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
     throw new Error('Can not update source of a layer group.');
   }
 
+  // @override
+  switchProjection (fromProj, toProj) {
+    super.switchProjection(fromProj, toProj);
+
+    // Tell children to switch projections as well.
+    this.childLayerElementsCollection_.forEach((item) => item.switchProjection(fromProj, toProj));
+  }
+
 }

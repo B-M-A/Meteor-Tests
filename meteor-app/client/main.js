@@ -79,8 +79,9 @@ Template.hello.events({
 
     const form = event.currentTarget,
           $map = instance.$('[role="map"]'),
+          map = $map[0],
           formValues = collectFormValues(form);
 
-    $map.attr('projection', formValues.projection);
+    map.switchProjection(map.projection, formValues.projection);
   }
 });

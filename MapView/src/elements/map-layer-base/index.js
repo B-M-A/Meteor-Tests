@@ -322,4 +322,25 @@ export default class HTMLMapLayerBase extends BaseClass {
     this.olLayer_.setSource(newSource);
   }
 
+  /**
+   * Set the new projection and also update other related properties (e.g. coordinates).
+   * @param {string} fromProj
+   * @param {string} toProj
+   */
+  switchProjection (fromProj, toProj) {
+    this.log_('switchProjection', {fromProj, toProj});
+
+    const oldExtent = this.extent;
+
+    if (!oldExtent) {
+      return;
+    }
+
+    const newExtent = this.ol.proj.transformExtent(oldExtent, fromProj, toProj);
+
+    this.logInfo_({oldExtent, newExtent});
+
+    this.extent = newExtent;
+  }
+
 }
