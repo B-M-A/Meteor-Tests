@@ -8,6 +8,19 @@ import HTMLMapLayerBase from '../map-layer-base';
 const defaultMinZoom = 0;
 const defaultMaxZoom = 18;
 
+/**
+ * Usage:
+ * <HTMLMapLayerXYZ
+ *   // @inheritdoc
+ *
+ *   // The url template of the xyz source.
+ *   url="{string}"
+ *   // The minimum zoom level the source supports.
+ *   min-zoom="{number}"
+ *   // The maximum zoom level the source supports.
+ *   max-zoom="{number}"
+ * />
+ */
 export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
 
   // @override
@@ -70,21 +83,11 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   // @override
   static get propertyToAttributeConverters () {
     return _.merge({}, super.propertyToAttributeConverters, {
-      'url': (val) => {
-        // Null is allowed for clearing the url.
-        if (val === null) {
-          return {isSet: false};
-        }
-
-        if (typeof val !== 'string') {
-          throw new TypeError('Layer url has to be a string.');
-        }
-
-        return {
-          isSet: true,
-          value: val
-        };
-      },
+      // @param {string|null} val - String value to be set, null to unset.
+      'url': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val,
+      }),
       // @param {number|null} val - Number value to be set, null to unset.
       'min-zoom': (val) => ({
         isSet: !(val === null),
@@ -116,13 +119,6 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
   static get layerSourceClass () {
     return this.ol.source.XYZ;
   }
-
-  /**
-   * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
-   */
-  constructor () {
-    super(); // always call super() first in the ctor.
-  } // constructor
 
   /**
    * Getters and Setters (for properties).

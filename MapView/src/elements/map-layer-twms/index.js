@@ -5,17 +5,28 @@ import {
 
 import HTMLMapLayerBase from '../map-layer-base';
 
+/**
+ * Usage:
+ * <HTMLMapLayerTWMS
+ *   // @inheritdoc
+ *
+ *   // Required. The url of the wms source.
+ *   url="{string}"
+ *   // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping).
+ *   // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
+ *   params="{string}"
+ *   // Not currently used.
+ *   // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
+ *   server-type="{string}"
+ * />
+ */
 export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
 
   // @override
   static get observedAttributes () {
     return _.concat(super.observedAttributes, [
-      // Url of the layer source.
       'url',
-      // WMS request parameters formatted as a query string: Name1=Value1&Name2=Value2 (names and values require escaping)
-      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
       'params',
-      // @see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
       'server-type',
     ]);
   }
@@ -67,40 +78,20 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   // @override
   static get propertyToAttributeConverters () {
     return _.merge({}, super.propertyToAttributeConverters, {
-      'url': (val) => {
-        // Null is allowed for clearing the url.
-        if (val === null) {
-          return {isSet: false};
-        }
-
-        if (typeof val !== 'string') {
-          throw new TypeError('Layer url has to be a string.');
-        }
-
-        return {
-          isSet: true,
-          value: val
-        };
-      },
-      'params': (val) => {
-        if (val === null) {
-          return {isSet: false};
-        }
-
-        if (typeof val !== 'object') {
-          throw new TypeError('Layer params has to be an object.');
-        }
-
-        return {
-          isSet: true,
-          value: Object.keys(val)
-                 .map((key) => [key, val[key]]
-                               .map((x) => encodeURIComponent(x))
-                               .join('=')
-                     )
-                 .join('&')
-        };
-      },
+      // @param {string|null} val - String value to be set, null to unset.
+      'url': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val,
+      }),
+      'params': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : Object.keys(val)
+                                     .map((key) => [key, val[key]]
+                                                   .map((x) => encodeURIComponent(x))
+                                                   .join('=')
+                                         )
+                                     .join('&'),
+      }),
       //@see {@link http://openlayers.org/en/latest/apidoc/ol.source.TileWMS.html}
 //       'server-type'
     });
@@ -124,13 +115,6 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
   static get layerSourceClass () {
     return this.ol.source.TileWMS;
   }
-
-  /**
-   * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
-   */
-  constructor () {
-    super(); // always call super() first in the ctor.
-  } // constructor
 
   /**
    * Getters and Setters (for properties).

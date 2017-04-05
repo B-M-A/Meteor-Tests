@@ -7,22 +7,33 @@ import BaseClass from '../base';
 
 export const defaultOpacity = 1;
 
+/**
+ * Usage:
+ * <HTMLMapLayerBase
+ *   // Unique name for the layer.
+ *   name="{string}"
+ *   // Opacity of the layer. Default is "1".
+ *   opacity="{number}"
+ *   // Extent of the layer. This restricts the region where data will be loaded. Default is unrestricted.
+ *   extent="{number}, {number}, {number}, {number}"
+ *   // Visibility of the layer. Default is false (visible).
+ *   invisible
+ *   // The minimum resolution (inclusive) at which this layer will be visible.
+ *   min-resolution="{number}"
+ *   // The maximum resolution (exclusive) below which this layer will be visible.
+ *   max-resolution="{number}"
+ * />
+ */
 export default class HTMLMapLayerBase extends BaseClass {
 
   // @override
   static get observedAttributes () {
     return _.concat(super.observedAttributes, [
-      // Unique name for the layer.
       'name',
-      // Opacity of the layer.
       'opacity',
-      // Extent of the layer.
       'extent',
-      // Visibility of the layer.
       'invisible',
-      // The minimum resolution (inclusive) at which this layer will be visible.
       'min-resolution',
-      // The maximum resolution (exclusive) below which this layer will be visible.
       'max-resolution',
     ]);
   }
@@ -316,7 +327,17 @@ export default class HTMLMapLayerBase extends BaseClass {
       throw new TypeError('Should not call updateSource before initializing the layer.');
     }
 
-    this.olSourceOptions_ = _.merge(this.olSourceOptions_, options);
+    const olSourceOptions = _.clone(this.olSourceOptions_);
+    Object.keys(options).forEach((key) => {
+      const value = options[key];
+
+      if (value === undefined) {
+        delete olSourceOptions[key];
+      } else {
+        olSourceOptions[key] = value;
+      }
+    });
+    this.olSourceOptions_ = olSourceOptions;
 
     const newSource = new this.constructor.layerSourceClass(this.olSourceOptions_);
     this.olLayer_.setSource(newSource);

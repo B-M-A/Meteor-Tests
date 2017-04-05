@@ -7,6 +7,12 @@ import HTMLMapLayerBase from '../map-layer-base';
  */
 const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
 
+/**
+ * Usage:
+ * <HTMLMapLayerGroup
+ *   // @inheritdoc
+ * />
+ */
 export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
 
   // @override
