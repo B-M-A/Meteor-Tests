@@ -139,6 +139,9 @@ export default class BaseClass extends HTMLElement {
 
     // This namespace stores flags indicating if the old values of some attributes were working.
     this.hasWorkingAttributes_ = {};
+
+    // Used by `this.setTimeout`.
+    this.timeoutIDs_ = new Set();
   } // constructor
 
   /**
@@ -154,6 +157,12 @@ export default class BaseClass extends HTMLElement {
    */
   disconnectedCallback () {
     this.log_('disconnected');
+
+    // Clear all timers.
+    this.forEachTimeoutID_((id) => {
+      this.clearTimeout(id);
+    });
+
     this.connected_ = false;
   }
 
@@ -349,6 +358,60 @@ export default class BaseClass extends HTMLElement {
   // @private
   isUpdating_ (attrName) {
     return this.changingAttributes_[attrName] === true;
+  }
+
+  /**
+   * Helper function for manipulating internal storage for `setTimeout`.
+   */
+  addTimeoutID_ (id) {
+    return this.timeoutIDs_.add(id);
+  }
+  /**
+   * Helper function for manipulating internal storage for `setTimeout`.
+   */
+  removeTimeoutID_ (id) {
+    return this.timeoutIDs_.delete(id);
+  }
+  /**
+   * Helper function for iterating internal storage for `setTimeout`.
+   * @param {function} func
+   * @param {Object|null} context
+   */
+  forEachTimeoutID_ (func, context) {
+    this.timeoutIDs_.forEach(func, context);
+  }
+
+  /**
+   * `global.setTimeout` wrapped for safety.
+   * The timeouts registered with this will all be cancelled if the element is disconnected.
+   * @param {function} func
+   * @param {number} [delay=0]
+   * @param {Array.<*>} [params]
+   * @returns {number}
+   */
+  setTimeout (func, delay = 0, ...params) {
+    const timerID = setTimeout((..._params) => {
+
+      this.removeTimeoutID_(timerID);
+
+      func(..._params);
+
+    }, delay, ...params);
+
+    this.addTimeoutID_(timerID);
+
+    return timerID;
+  }
+
+  /**
+   * `global.clearTimeout` wrapped for safety.
+   * Does the reverse of `this.setTimeout`.
+   * @param {number} timerID
+   */
+  clearTimeout (timerID) {
+    clearTimeout(timerID);
+
+    this.removeTimeoutID_(timerID);
   }
 
 }

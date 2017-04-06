@@ -240,7 +240,10 @@ export default class HTMLMapView extends BaseClass {
     this.mountView_();
 
     // After this custom element is inserted into somewhere new, the map size has to be updated.
-    this.olMap_.updateSize();
+    // This has to be deferred because as this time the element might not get the correct styling.
+    this.setTimeout(() => {
+      this.olMap_.updateSize();
+    });
   }
 
   /**
