@@ -19,16 +19,3 @@ div[role="demo"] div[role="container2"] {
   height: 300px;
   border: 1px solid blue;
 }
-
-div[role="two-map-demo"] {
-  white-space: nowrap;
-}
-
-div[role="two-map-demo"] map-view {
-  width: 50%;
-  height: 350px;
-}
-
-div[role="huc6-demo"] map-view {
-  height: 350px;
-}
