@@ -320,6 +320,7 @@ export default class HTMLMapLayerBase extends BaseClass {
   /**
    * Use the options set in `this.olSourceOptions_` to create a new layer source and use that in the layer.
    * Since this creates a new source thus loosing all the cached data in the old one, don't use this for minor changes.
+   * Pass in `undefined` (or `void 0`) as value to delete a field.
    * @param {Object} options
    */
   updateSource (options) {
@@ -331,7 +332,7 @@ export default class HTMLMapLayerBase extends BaseClass {
     Object.keys(options).forEach((key) => {
       const value = options[key];
 
-      if (value === undefined) {
+      if (typeof value === 'undefined') {
         delete olSourceOptions[key];
       } else {
         olSourceOptions[key] = value;
@@ -349,7 +350,10 @@ export default class HTMLMapLayerBase extends BaseClass {
    * @param {string} toProj
    */
   switchProjection (fromProj, toProj) {
-    this.log_('switchProjection', {fromProj, toProj});
+    this.log_('switchProjection', {
+      fromProj,
+      toProj
+    });
 
     const oldExtent = this.extent;
 
@@ -359,7 +363,10 @@ export default class HTMLMapLayerBase extends BaseClass {
 
     const newExtent = this.ol.proj.transformExtent(oldExtent, fromProj, toProj);
 
-    this.logInfo_({oldExtent, newExtent});
+    this.logInfo_({
+      oldExtent,
+      newExtent
+    });
 
     this.extent = newExtent;
   }

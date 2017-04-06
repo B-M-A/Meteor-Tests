@@ -435,12 +435,18 @@ export default class HTMLMapView extends BaseClass {
    * @param {string} toProj
    */
   switchProjection (fromProj, toProj) {
-    this.log_('switchProjection', {fromProj, toProj});
+    this.log_('switchProjection', {
+      fromProj,
+      toProj
+    });
 
     const oldCenter = this.center,
           newCenter = this.ol.proj.transform(oldCenter, fromProj, toProj);
 
-    this.logInfo_({oldCenter, newCenter});
+    this.logInfo_({
+      oldCenter,
+      newCenter
+    });
 
     this.projection = toProj;
     this.center = newCenter;
