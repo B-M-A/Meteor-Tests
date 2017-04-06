@@ -192,8 +192,8 @@ export default class HTMLMapView extends BaseClass {
     this.updateView_();
 
     this.olMap_ = new ol.Map({
-//       controls: this.mapControls_,
-//       interactions: this.mapInteractions_,
+      controls: this.mapControls_,
+      interactions: this.mapInteractions_,
       keyboardEventTarget: this.mapElement_,
       layers: [
         new ol.layer.Group({
