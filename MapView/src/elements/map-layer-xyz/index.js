@@ -192,4 +192,4 @@ export default class HTMLMapLayerXYZ extends HTMLMapLayerBase {
    * Customized public/private methods.
    */
 
-}
+} // HTMLMapLayerXYZ

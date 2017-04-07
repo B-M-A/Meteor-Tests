@@ -371,4 +371,4 @@ export default class HTMLMapLayerBase extends BaseClass {
     this.extent = newExtent;
   }
 
-}
+} // HTMLMapLayerBase

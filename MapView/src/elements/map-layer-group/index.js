@@ -130,4 +130,4 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
     this.childLayerElementsCollection_.forEach((item) => item.switchProjection(fromProj, toProj));
   }
 
-}
+} // HTMLMapLayerGroup

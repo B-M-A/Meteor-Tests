@@ -160,4 +160,4 @@ export default class HTMLMapLayerTWMS extends HTMLMapLayerBase {
    * Customized public/private methods.
    */
 
-}
+} // HTMLMapLayerTWMS

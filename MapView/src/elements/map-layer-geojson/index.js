@@ -130,13 +130,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
   }
 
   /**
-   * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
-   */
-  constructor () {
-    super(); // always call super() first in the ctor.
-  } // constructor
-
-  /**
    * Getters and Setters (for properties).
    */
 
@@ -274,4 +267,4 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
     this.projection = toProj;
   }
 
-}
+} // HTMLMapLayerGeoJSON

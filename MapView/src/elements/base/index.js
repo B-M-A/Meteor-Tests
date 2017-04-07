@@ -24,7 +24,7 @@
 
 import ol from '../../third-party/ol-v4.0.1-dist.js';
 
-export default class BaseClass extends HTMLElement {
+export default class HTMLMapBaseClass extends HTMLElement {
 
   /**
    * Lifecycle:
@@ -497,4 +497,4 @@ export default class BaseClass extends HTMLElement {
     this.removeTimeoutID_(timerID);
   }
 
-}
+} // HTMLMapBaseClass
