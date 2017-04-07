@@ -361,7 +361,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       return;
     }
 
-    const newExtent = this.ol.proj.transformExtent(oldExtent, fromProj, toProj);
+    const newExtent = this.constructor.transformExtent(oldExtent, fromProj, toProj);
 
     this.logInfo_({
       oldExtent,

@@ -120,6 +120,89 @@ export default class BaseClass extends HTMLElement {
   }
 
   /**
+   * A better version of transformExtent.
+   * @param {ol.Extent} extent
+   * @param {ol.ProjectionLike} source
+   * @param {ol.ProjectionLike} destination
+   * @param {number} [estimation=1] - How many interpolation points used for estimation. Must be no less than 1.
+   * @returns {ol.Extent}
+   */
+  static transformExtent (extent, source, destination, estimation = 1) {
+    // Get all four points of the rectangle instead of two.
+    const [minX, minY, maxX, maxY] = extent,
+          _4points = [
+            [minX, minY],
+            [maxX, minY],
+            [maxX, maxY],
+            [minX, maxY],
+          ];
+
+    const allPoints = _4points.reduce((acc, point, index, list) => {
+      // Get the next point that is needed for interpolation. Wrap around when overflow.
+      const nextPoint = list[(index + 1) % list.length];
+      // Get the axis where interpolation is needed. The input values are arranged so the interpolation axis iterates between 1 and 0.
+      const interpolateAxis = index % 2;
+
+      const val1 = point[interpolateAxis],
+            val2 = nextPoint[interpolateAxis],
+            valDiff = val2 - val1,
+            pointPerEdge = estimation + 2,
+            valStep = valDiff / (pointPerEdge - 1);
+
+      const points = [];
+      for (let i = 1; i <= estimation; ++i) {
+        const thisPoint = [...point];
+        thisPoint[interpolateAxis] = val1 + valStep * i;
+
+        points.push(thisPoint);
+      }
+
+      return [...acc, point, ...points];
+    }, []);
+
+    const allPointsInDestination = allPoints.map((point) => this.ol.proj.transform(point, source, destination));
+
+    // The source data used for aggregation has to contain the head again in the end to prevent overflow.
+    const aggSrcData = [...allPointsInDestination, allPointsInDestination[0]];
+
+    const aggFuncs = [
+      Math.min.bind(Math),
+      Math.max.bind(Math),
+    ];
+
+    const aggConfig = [
+      // Order is important. It must match how `_4points` is defined.
+      // For example, if `_4points[0]` and `_4points[1]` share the same Y, then the first one here must be a Y.
+      'minY',
+      'maxX',
+      'maxY',
+      'minX',
+    ].map((name, index) => [name, {
+      // As long as the name string array follows the order of `_4points`, these two properties don't depend on the name values.
+      edgeBegin: (estimation + 1) * index,
+      edgeEnd: (estimation + 1) * (index + 1) + 1,
+      // This should work for the exact name value arrangement.
+      // Axis X is 0, Y is 1.
+      axis: 1 - index % 2,
+      // This should work for the exact name value arrangement and the aggregation function arrangement.
+      func: aggFuncs[(index >> 1) ^ (index & 1)]
+    }]).reduce((acc, [name, config]) => ({
+      ...acc,
+      [name]: config
+    }), {});
+
+    const result = [
+      // Result must be in the order of: minX, minY, maxX, maxY.
+      aggConfig.minX,
+      aggConfig.minY,
+      aggConfig.maxX,
+      aggConfig.maxY,
+    ].map(({func, axis, edgeBegin, edgeEnd}) => func(...(aggSrcData.slice(edgeBegin, edgeEnd).map((point) => point[axis]))));
+
+    return result;
+  }
+
+  /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
   constructor () {
