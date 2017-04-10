@@ -1,26 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="./lib/native-shim-v1.0.0-rc.2.js"></script>
-  <script src="./lib/proj4-v2.4.3.js"></script>
-  <script src="./lib/proj4-defs.js"></script>
-  <script src="./lib/mapview/bundle.js"></script>
+  <title>MapView Demos</title>
 </head>
 <body>
 
-  <map-view id="demo-map" role="map" basemap="osm" center="-10997148, 4569099">
-
-    <map-layer-group>
-      <map-layer-twms
-        name="example-twms-topp:states"
-        extent="-13884991, 2870341, -7455066, 6338219"
-        url="https://ahocevar.com/geoserver/wms"
-        params="LAYERS=topp%3Astates&TILED=true"
-        server-type="geoserver"
-      ></map-layer-twms>
-    </map-layer-group>
-
-  </map-view>
+  <ul>
+    <li><a href="./tiled-wms.html">Tiled WMS Layer Demo</a></li>
+    <li><a href="./geojson.html">GeoJSON Layer Demo</a></li>
+    <li><a href="./switch-container.html">Switch Container Demo</a></li>
+    <li><a href="./two-maps.html">Two Maps Demo</a></li>
+    <li><a href="./two-map-reprojection.html">Two Map Reprojection Demo</a></li>
+  </ul>
 
 </body>
 </html>
