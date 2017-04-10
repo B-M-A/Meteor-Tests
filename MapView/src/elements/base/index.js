@@ -387,7 +387,6 @@ export default class HTMLMapBaseClass extends HTMLElement {
    * @param {string} [attrVal] - Optional. If provided, will use this value for conversion.
    * @returns {*}
    */
-  //!attrToProp_
   getPropertyValueFromAttribute_ (attrName, hasAttr, attrVal) {
     const _hasAttr = !(typeof hasAttr === 'undefined') ? hasAttr : this.hasAttribute(attrName);
     const _attrVal = !(typeof attrVal === 'undefined') ? attrVal : this.getAttribute(attrName);
@@ -407,7 +406,6 @@ export default class HTMLMapBaseClass extends HTMLElement {
    * @param {*} propVal
    * @returns {string}
    */
-  //!propToAttr_
   updateAttributeByProperty_ (attrName, propVal) {
     const converter = this.constructor.propertyToAttributeConverters[attrName];
 
