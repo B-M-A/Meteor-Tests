@@ -169,8 +169,10 @@ export default class HTMLMapView extends BaseClass {
     // Sync from element collection to layer collection.
     onLayerListChanged((layers) => {
       const layerCollection = this.childMapLayerCollection_;
+
       layerCollection.clear();
       layerCollection.extend(layers);
+      layerCollection.changed();
     });
 
     this.baseMapLayerCollection_ = new ol.Collection([
@@ -296,6 +298,7 @@ export default class HTMLMapView extends BaseClass {
     } else {
       this.baseMapLayerCollection_.push(layer);
     }
+    this.baseMapLayerCollection_.changed();
 
     // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('basemap'), _val);

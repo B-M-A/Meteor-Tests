@@ -99,8 +99,10 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
 
     onLayerListChanged((layers) => {
       const layerCollection = this.layer.getLayers();
+
       layerCollection.clear();
       layerCollection.extend(layers);
+      layerCollection.changed();
     });
   } // constructor
 
