@@ -66,11 +66,6 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
   static updateChildLayerElements_ (element, collection) {
     const childElements = getArrayFromNodeList(element.children).filter((node) => node instanceof HTMLElement);
 
-    // Do nothing when the element has no child elements.
-    if (childElements.length === 0) {
-      return;
-    }
-
     // Only scan one level. The elements in this level should handle their own children.
     const layerElements = childElements.filter((node) => node instanceof HTMLMapLayerBase);
 
