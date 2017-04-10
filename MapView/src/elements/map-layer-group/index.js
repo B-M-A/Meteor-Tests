@@ -69,6 +69,21 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
     // Only scan one level. The elements in this level should handle their own children.
     const layerElements = childElements.filter((node) => node instanceof HTMLMapLayerBase);
 
+    // Children should have the same projection as the parent.
+    // Only do this check when the parent actually has a projection.
+    if (element.projection && layerElements.length > 0) {
+      const parentProjection = element.projection;
+
+      element.log_('Matching children projections...', {parentProjection});
+
+      layerElements.forEach((el) => {
+        const childProjection = el.projection;
+        if (!element.isIdenticalPropertyValue_('projection', parentProjection, childProjection)) {
+          el.switchProjection(childProjection, parentProjection);
+        }
+      });
+    }
+
     // Do nothing if the new elements are identical to the existing ones.
     const oldLayerElements = collection.getArray(),
           equalToOldData = layerElements.length === oldLayerElements.length && layerElements.every((el, index) => el === oldLayerElements[index]);
