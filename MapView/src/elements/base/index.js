@@ -20,6 +20,7 @@
  *       - done!
  */
 
+/*eslint no-bitwise: "off", no-console: "off"*/
 /*global HTMLElement, CustomEvent*/
 
 import ol from '../../third-party/ol-v4.0.1-dist.js';
