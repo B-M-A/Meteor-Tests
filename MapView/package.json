@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "npm run lint && npm run compile && uglifyjs dist/bundle.js --output dist/bundle.min.js --source-map dist/bundle.min.js.map",
-    "compile": "mkdir -p dist && babel src --out-dir src-babelfree --copy-files && browserify src-babelfree/index.js -o dist/bundle.js",
+    "compile": "mkdir -p dist && babel src --out-dir src-babelfree --copy-files && browserify src-babelfree/index.js -o dist/bundle.js && rm -rf src-babelfree",
     "demo": "node demo/server.js 5000",
     "lint": "eslint \"src/**\"",
     "test": "echo \"Error: no test specified\" && exit 1"
