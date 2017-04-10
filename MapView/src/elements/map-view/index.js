@@ -5,6 +5,10 @@ import {
 
 import BaseClass from '../base';
 
+import {
+  defaultProjection
+} from '../map-layer-base';
+
 import HTMLMapLayerGroup from '../map-layer-group';
 
 import {
@@ -15,7 +19,6 @@ import {
   getBaseMap,
 } from './basemap';
 
-const defaultProjection = 'EPSG:3857';
 const defaultCenter = [0, 0];
 
 export default class HTMLMapView extends BaseClass {
@@ -308,22 +311,20 @@ export default class HTMLMapView extends BaseClass {
       throw new TypeError('Map projection has to be a string.');
     }
 
-    const _val = typeCheck('String', val) ? val.trim() : val;
-
-    if (!this.ol.proj.get(_val)) {
+    if (val !== null && !this.constructor.isValidProjection(val)) {
       throw new TypeError('Invalid projection.');
     }
 
     // Update internal models.
     const oldVal = this.mapView_.getProjection().getCode();
-    if (!this.isIdenticalPropertyValue_('projection', oldVal, _val)) {
+    if (!this.isIdenticalPropertyValue_('projection', oldVal, val)) {
       this.updateView_({
-        projection: _val
+        projection: val
       });
     }
 
     // Update attributes.
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), _val);
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), val);
   }
 
   get center () {

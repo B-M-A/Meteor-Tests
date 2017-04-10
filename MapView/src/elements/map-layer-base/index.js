@@ -6,6 +6,7 @@ import {
 import BaseClass from '../base';
 
 export const defaultOpacity = 1;
+export const defaultProjection = 'EPSG:3857';
 
 /**
  * Usage:
@@ -22,6 +23,8 @@ export const defaultOpacity = 1;
  *   min-resolution="{number}"
  *   // The maximum resolution (exclusive) below which this layer will be visible.
  *   max-resolution="{number}"
+ *   // The current projection used by this layer. This should match the map view projection. Default value is "EPSG:3857".
+ *   projection="{string}"
  * />
  */
 export default class HTMLMapLayerBase extends BaseClass {
@@ -35,6 +38,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'invisible',
       'min-resolution',
       'max-resolution',
+      'projection',
     ]);
   }
 
@@ -47,6 +51,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'invisible': 'invisible',
       'min-resolution': 'minResolution',
       'max-resolution': 'maxResolution',
+      'projection': 'projection',
     });
   }
 
@@ -59,6 +64,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'invisible': 'invisible',
       'minResolution': 'min-resolution',
       'maxResolution': 'max-resolution',
+      'projection': 'projection',
     });
   }
 
@@ -91,6 +97,11 @@ export default class HTMLMapLayerBase extends BaseClass {
       'max-resolution': (isSet, val) => (
         isSet
         ? parseFloat(val)
+        : null
+      ),
+      'projection': (isSet, val) => (
+        isSet
+        ? val
         : null
       ),
     });
@@ -129,6 +140,11 @@ export default class HTMLMapLayerBase extends BaseClass {
         isSet: !(val === null),
         value: (val === null) ? '' : String(val),
       }),
+      // @param {string|null} val - String value to be set, null to unset.
+      'projection': (val) => ({
+        isSet: !(val === null),
+        value: (val === null) ? '' : val,
+      }),
     });
   }
 
@@ -141,6 +157,7 @@ export default class HTMLMapLayerBase extends BaseClass {
       'invisible': (a, b) => a === b,
       'min-resolution': (a, b) => a === b,
       'max-resolution': (a, b) => a === b,
+      'projection': (a, b) => a === b,
     });
   }
 
@@ -313,6 +330,24 @@ export default class HTMLMapLayerBase extends BaseClass {
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('maxResolution'), val);
   }
 
+  // @property {string|null} projection
+  get projection () {
+    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('projection'));
+    return propValFromAttr === null ? defaultProjection : propValFromAttr;
+  }
+  set projection (val) {
+    if (!typeCheck('String | Null', val)) {
+      throw new TypeError('Layer projection has to be a string.');
+    }
+
+    if (val !== null && !this.constructor.isValidProjection(val)) {
+      throw new TypeError('Invalid projection.');
+    }
+
+    // Update attributes.
+    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), val);
+  }
+
   /**
    * Customized public/private methods.
    */
@@ -354,6 +389,8 @@ export default class HTMLMapLayerBase extends BaseClass {
       fromProj,
       toProj
     });
+
+    this.projection = toProj;
 
     const oldExtent = this.extent;
 

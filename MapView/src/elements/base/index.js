@@ -203,6 +203,15 @@ export default class HTMLMapBaseClass extends HTMLElement {
   }
 
   /**
+   * Returns true if the given value is a valid projection.
+   * @param {ol.ProjectionLike} val
+   * @returns {boolean}
+   */
+  static isValidProjection (val) {
+    return this.ol.proj.get(val) !== null;
+  }
+
+  /**
    * An instance of the element is created or upgraded. Useful for initializing state, settings up event listeners, or creating shadow dom. See the spec for restrictions on what you can do in the constructor.
    */
   constructor () {

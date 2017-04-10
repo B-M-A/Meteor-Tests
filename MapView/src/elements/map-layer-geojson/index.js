@@ -6,7 +6,6 @@ import {
 import HTMLMapLayerBase from '../map-layer-base';
 
 const defaultDataProjection = 'EPSG:4326';
-const defaultFeatureProjection = 'EPSG:4326';
 
 /**
  * Usage:
@@ -19,8 +18,6 @@ const defaultFeatureProjection = 'EPSG:4326';
  *   src-json="{string}"
  *   // Specify the projection the source data coordinates are in. It will only be used when no CRS is available in the data. Default value is "EPSG:4326".
  *   src-projection="{string}"
- *   // The projection used for displaying. This should match the map view projection. Default value is "EPSG:4326".
- *   projection="{string}"
  * >
  *   <HTMLMapLayerVectorStyle ... />
  * </HTMLMapLayerGeoJSON>
@@ -33,7 +30,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
       'src-url',
       'src-json',
       'src-projection',
-      'projection',
     ]);
   }
 
@@ -43,7 +39,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
       'src-url': 'srcUrl',
       'src-json': 'srcJson',
       'src-projection': 'srcProjection',
-      'projection': 'projection',
     });
   }
 
@@ -53,7 +48,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
       'srcUrl': 'src-url',
       'srcJson': 'src-json',
       'srcProjection': 'src-projection',
-      'projection': 'projection',
     });
   }
 
@@ -71,11 +65,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
         : null
       ),
       'src-projection': (isSet, val) => (
-        isSet
-        ? val
-        : null
-      ),
-      'projection': (isSet, val) => (
         isSet
         ? val
         : null
@@ -101,11 +90,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
         isSet: !(val === null),
         value: (val === null) ? '' : val,
       }),
-      // @param {string|null} val - String value to be set, null to unset.
-      'projection': (val) => ({
-        isSet: !(val === null),
-        value: (val === null) ? '' : val,
-      }),
     });
   }
 
@@ -115,7 +99,6 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
       'srcUrl': (a, b) => a === b,
       'srcJson': (a, b) => a === b,
       'srcProjection': (a, b) => a === b,
-      'projection': (a, b) => a === b,
     });
   }
 
@@ -208,7 +191,9 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
       throw new TypeError('GeoJSON layer source data projection has to be a string.');
     }
 
-    //! Check if projection is valid.
+    if (val !== null && !this.constructor.isValidProjection(val)) {
+      throw new TypeError('Invalid projection.');
+    }
 
     // Update attributes.
     this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('srcProjection'), val);
@@ -227,20 +212,12 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
     }
   }
 
-  // @property {string|null} projection
+  // @override
   get projection () {
-    const propValFromAttr = this.getPropertyValueFromAttribute_(this.constructor.getAttributeNameByPropertyName_('projection'));
-    return propValFromAttr === null ? defaultFeatureProjection : propValFromAttr;
+    return super.projection;
   }
   set projection (val) {
-    if (!typeCheck('String | Null', val)) {
-      throw new TypeError('GeoJSON layer display projection has to be a string.');
-    }
-
-    //! Check if projection is valid.
-
-    // Update attributes.
-    this.updateAttributeByProperty_(this.constructor.getAttributeNameByPropertyName_('projection'), val);
+    super.projection = val;
 
     if (this.srcUrl) {
       this.logWarn_('Resetting src-url.');
@@ -259,12 +236,5 @@ export default class HTMLMapLayerGeoJSON extends HTMLMapLayerBase {
   /**
    * Customized public/private methods.
    */
-
-  // @override
-  switchProjection (fromProj, toProj) {
-    super.switchProjection(fromProj, toProj);
-
-    this.projection = toProj;
-  }
 
 } // HTMLMapLayerGeoJSON
