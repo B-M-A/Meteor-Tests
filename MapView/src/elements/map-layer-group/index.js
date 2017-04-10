@@ -1,12 +1,5 @@
 import HTMLMapLayerBase from '../map-layer-base';
 
-/*global HTMLElement, MutationObserver*/
-
-/**
- * NodeList -> Array.<Node>
- */
-const getArrayFromNodeList = (nodeList) => Array.from(nodeList);
-
 /**
  * Usage:
  * <HTMLMapLayerGroup
@@ -21,82 +14,51 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
   }
 
   /**
-   * A static helper function for setting up observers for monitoring child layer element changes.
-   * Does it potentially leak observers?
-   * @param {HTMLElement} element
-   * @returns {collection: ol.Collection.<HTMLMapLayerBase>, observer: MutationObserver, onLayerListChanged: function(Array.<ol.layer.Base>, ol.Collection.<HTMLMapLayerBase>)}
+   * Make the target elements have the same projection as the source element.
+   * @param {HTMLElement} sourceElement
+   * @param {Array.<HTMLMapLayerBase>} targetElements
    */
-  static setupChildLayerElementsObserver (element) {
-    const collection = new this.ol.Collection(),
-          updateFunction = this.updateChildLayerElements_.bind(this, element, collection),
-          observer = new MutationObserver(updateFunction),
-          onLayerListChanged = (func) => {
-            collection.on('change', ({/*type, */target}) => {
-              const layers = target.getArray().map((el) => el.layer);
-              func(layers, collection);
-            });
-          };
+  static alignLayerElementProjections (sourceElement, targetElements) {
+    // Only do this when the parent actually has a projection.
+    if (sourceElement.projection && targetElements.length > 0) {
+      const sourceProjection = sourceElement.projection;
 
-    // Start observing.
-    observer.observe(element, {
-      attributes: false,
-      childList: true,
-      characterData: false,
-      subtree: false
-    });
-
-    // If there is already children in the element, we need another pass of updating.
-    if (element.children.length > 0) {
-      setTimeout(updateFunction, 0);
-    }
-
-    return {
-      collection,
-      observer,
-      onLayerListChanged,
-    };
-  }
-
-  /**
-   * Scan the children for layer elements.
-   * @private
-   * @param {HTMLElement} element
-   * @param {ol.Collection} collection
-   */
-  static updateChildLayerElements_ (element, collection) {
-    const childElements = getArrayFromNodeList(element.children).filter((node) => node instanceof HTMLElement);
-
-    // Only scan one level. The elements in this level should handle their own children.
-    const layerElements = childElements.filter((node) => node instanceof HTMLMapLayerBase);
-
-    // Children should have the same projection as the parent.
-    // Only do this check when the parent actually has a projection.
-    if (element.projection && layerElements.length > 0) {
-      const parentProjection = element.projection;
-
-      element.log_('Matching children projections...', {parentProjection});
-
-      layerElements.forEach((el) => {
-        const childProjection = el.projection;
-        if (!element.isIdenticalPropertyValue_('projection', parentProjection, childProjection)) {
-          el.switchProjection(childProjection, parentProjection);
+      targetElements.forEach((el) => {
+        const targetProjection = el.projection;
+        if (!sourceElement.isIdenticalPropertyValue_('projection', sourceProjection, targetProjection)) {
+          el.switchProjection(targetProjection, sourceProjection);
         }
       });
     }
+  }
 
-    // Do nothing if the new elements are identical to the existing ones.
-    const oldLayerElements = collection.getArray(),
-          equalToOldData = layerElements.length === oldLayerElements.length && layerElements.every((el, index) => el === oldLayerElements[index]);
-    if (equalToOldData) {
-      return;
-    }
+  /**
+   * A static helper function for setting up observers for monitoring child layer element changes.
+   * Does it potentially leak observers?
+   * @param {HTMLElement} element
+   * @param {ol.Collection.<ol.layer.Base>} [layerCollection]
+   * @returns {ol.Collection.<HTMLMapLayerBase>}
+   */
+  static setupChildLayerElementsObserver (element, layerCollection) {
+    const elementCollection = this.setupChildElementsObserver(element, HTMLMapLayerBase);
 
-    // Update collection.
-    collection.clear();
-    collection.extend(layerElements);
-    collection.changed();
+    elementCollection.on('change', ({/*type, */target}) => {
+      const layerElements = target.getArray();
 
-    element.log_(`${layerElements.length} layer(s) loaded from ${element.children.length} element(s).`);
+      // Children should have the same projection as the parent.
+      this.alignLayerElementProjections(element, layerElements);
+
+      // Update the layer collection.
+      if (layerCollection) {
+        const layers = layerElements.map((el) => el.layer);
+
+        layerCollection.clear();
+        layerCollection.extend(layers);
+        layerCollection.changed();
+      }
+    });
+
+    return elementCollection;
   }
 
   /**
@@ -105,20 +67,9 @@ export default class HTMLMapLayerGroup extends HTMLMapLayerBase {
   constructor () {
     super(); // always call super() first in the ctor.
 
-    const {
-      collection: childLayerElementsCollection,
-      onLayerListChanged
-    } = this.constructor.setupChildLayerElementsObserver(this);
-
-    this.childLayerElementsCollection_ = childLayerElementsCollection;
-
-    onLayerListChanged((layers) => {
-      const layerCollection = this.layer.getLayers();
-
-      layerCollection.clear();
-      layerCollection.extend(layers);
-      layerCollection.changed();
-    });
+    // This collection holds the child layer elements.
+    // @type {ol.Collection.<HTMLMapLayerBase>}
+    this.childLayerElementsCollection_ = this.constructor.setupChildLayerElementsObserver(this, this.layer.getLayers());
   } // constructor
 
   /**

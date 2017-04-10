@@ -21,7 +21,7 @@
  */
 
 /*eslint no-bitwise: "off", no-console: "off"*/
-/*global HTMLElement, CustomEvent*/
+/*global HTMLElement, CustomEvent, MutationObserver*/
 
 import ol from '../../third-party/ol-v4.0.1-dist.js';
 
@@ -210,6 +210,69 @@ export default class HTMLMapBaseClass extends HTMLElement {
    */
   static isValidProjection (val) {
     return this.ol.proj.get(val) !== null;
+  }
+
+  /**
+   * NodeList -> Array.<Node>
+   */
+  static getArrayFromNodeList (nodeList) {
+    return Array.from(nodeList);
+  }
+
+  /**
+   * A static helper function for setting up observers for monitoring child element changes.
+   * Does it potentially leak observers?
+   * @param {HTMLElement} element
+   * @param {function} constructor
+   * @returns {ol.Collection.<function>}
+   */
+  static setupChildElementsObserver (element, constructor) {
+    const collection = new this.ol.Collection(),
+          updateFunction = this.updateChildElements_.bind(this, element, constructor, collection),
+          observer = new MutationObserver(updateFunction);
+
+    // Start observing.
+    observer.observe(element, {
+      attributes: false,
+      childList: true,
+      characterData: false,
+      subtree: false
+    });
+
+    // If there is already children in the element, we need another pass of updating.
+    if (element.children.length > 0) {
+      setTimeout(updateFunction, 0);
+    }
+
+    return collection;
+  }
+
+  /**
+   * Scan the children for the given elements.
+   * @private
+   * @param {HTMLElement} element
+   * @param {function} constructor
+   * @param {ol.Collection} collection
+   */
+  static updateChildElements_ (element, constructor, collection) {
+    const childElements = this.getArrayFromNodeList(element.children).filter((node) => node instanceof HTMLElement);
+
+    // Only scan one level. The elements in this level should handle their own children.
+    const targetElements = childElements.filter((node) => node instanceof constructor);
+
+    // Do nothing if the new elements are identical to the existing ones.
+    const oldTargetElements = collection.getArray(),
+          equalToOldList = targetElements.length === oldTargetElements.length && targetElements.every((el, index) => el === oldTargetElements[index]);
+    if (equalToOldList) {
+      return;
+    }
+
+    // Update collection.
+    collection.clear();
+    collection.extend(targetElements);
+    collection.changed();
+
+    element.log_(`${targetElements.length} layer(s) loaded from ${childElements.length} element(s).`);
   }
 
   /**

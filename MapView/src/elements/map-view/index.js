@@ -155,26 +155,15 @@ export default class HTMLMapView extends BaseClass {
 
     this.mapInteractions_ = new ol.Collection();
 
+    // This collection holds the child layers so it's easier to do batch updates.
     // @type {ol.Collection.<ol.layer.Base>}
     this.childMapLayerCollection_ = new ol.Collection();
 
-    const {
-      collection: childLayerElementsCollection,
-      onLayerListChanged
-    } = HTMLMapLayerGroup.setupChildLayerElementsObserver(this);
-
+    // This collection holds the child layer elements.
     // @type {ol.Collection.<HTMLMapLayerBase>}
-    this.childLayerElementsCollection_ = childLayerElementsCollection;
+    this.childLayerElementsCollection_ = HTMLMapLayerGroup.setupChildLayerElementsObserver(this, this.childMapLayerCollection_);
 
-    // Sync from element collection to layer collection.
-    onLayerListChanged((layers) => {
-      const layerCollection = this.childMapLayerCollection_;
-
-      layerCollection.clear();
-      layerCollection.extend(layers);
-      layerCollection.changed();
-    });
-
+    // This collection holds the base map.
     this.baseMapLayerCollection_ = new ol.Collection([
       getBaseMap(defaultMapType, this.baseMapCache_)
     ]);
