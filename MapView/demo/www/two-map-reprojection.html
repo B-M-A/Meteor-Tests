@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="./lib/native-shim-v1.0.0-rc.2.js"></script>
+  <script src="./lib/proj4-v2.4.3.js"></script>
+  <script src="./lib/proj4-defs.js"></script>
+  <script src="./lib/mapview/bundle.js"></script>
+  <style>
+    #demo-field {
+      display: flex;
+    }
+    #demo-field map-view {
+      flex: 1;
+
+      display: block;
+
+      height: 400px;
+
+      margin: 0 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Two Map Reprojection Demo</h1>
+
+  <div id="demo-field">
+    <map-view basemap="none" center="-10997148, 4569099">
+      <map-layer-xyz
+        name="example-xyz-World_Topo_Map"
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+      ></map-layer-xyz>
+      <map-layer-twms
+        name="example-twms-cigi:usdemtiles"
+        extent="-13915047.668649992, 2753286.2554852893, -7346975.072865263, 6446449.025202513"
+        url="http://gisolve-portal.ncsa.illinois.edu/geoserver/cigi/wms"
+        params="LAYERS=cigi%3Ausdemtiles&TILED=true"
+        server-type="geoserver"
+      ></map-layer-twms>
+    </map-view>
+
+    <map-view basemap="osm" projection="EPSG:4326" center="-98.78906130124426, 37.92686191312036">
+      <map-layer-geojson
+        name="example-geojson"
+        src-json='{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"stroke":"#555555","stroke-width":2,"stroke-opacity":1,"fill":"#555555","fill-opacity":0.5},"geometry":{"type":"Polygon","coordinates":[[[-101.865234375,37.09023980307208],[-92.28515625,40.17887331434696],[-93.69140625,38.47939467327645],[-102.63427734374999,41.83682786072714],[-99.052734375,36.80928470205937],[-103.623046875,38.8225909761771],[-94.63623046875,40.111688665595956],[-100.986328125,42.032974332441405],[-97.119140625,43.58039085560784],[-101.865234375,37.09023980307208]]]}}]}'
+        src-projection="EPSG:4326"
+        projection="EPSG:4326"
+      ></map-layer-geojson>
+    </map-view>
+  </div>
+
+</body>
+</html>
